@@ -2,14 +2,15 @@
 
 <img src="frontend/public/logo.svg" width="64" height="64" alt="logo" />
 
-# 球球写作
+# nspox
 
-### 本项目为球球写作开源版
+### AI 助力人类构筑专属内心世界
 
 **让创作更简单，让故事更精彩**
 
-专业的 AI 写作助手，帮助你从灵感到成稿，轻松完成每一部作品。
+nspox 是一款开源 AI 写作平台，帮助每一位创作者将脑海中的灵感与情感，沉淀为可被书写、收藏与分享的内心世界。
 
+[![GitHub](https://img.shields.io/badge/GitHub-nspox--project%2Fnspox-181717?logo=github&logoColor=white)](https://github.com/nspox-project/nspox)
 [![Edition](https://img.shields.io/badge/Edition-%E5%BC%80%E6%BA%90%E7%89%88-2ea44f?style=flat-square)](#项目声明)
 [![Free](https://img.shields.io/badge/Free-%E5%85%8D%E8%B4%B9-3178C6?style=flat-square)](#项目声明)
 
@@ -20,16 +21,22 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-4169E1?logo=postgresql&logoColor=white)](https://postgresql.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+[GitHub 仓库](https://github.com/nspox-project/nspox) · [Issues](https://github.com/nspox-project/nspox/issues) · [Discussions](https://github.com/nspox-project/nspox/discussions)
+
 </div>
 
 ---
 
 ## 项目声明
 
-> **本项目为「球球写作开源版」。**
+> **本项目为「nspox 开源版」。**
+>
+> nspox 的主题是「**AI 助力人类构筑专属内心世界**」——我们相信每个人都拥有独属于自己的精神宇宙，AI 应当成为帮助人类把它书写下来的伙伴，而非替代品。
 >
 > 本仓库源码基于 [MIT 协议](LICENSE) 开源，并免费提供给社区使用。
 > 您可以在 MIT 协议范围内用于学习、研究、二次开发以及商业部署，无需额外付费授权。
+>
+> 官方仓库：<https://github.com/nspox-project/nspox>
 
 ---
 
@@ -73,7 +80,7 @@
 
 ### 🎯 适用于各类创作场景
 
-无论你是专业作家还是写作爱好者，球球写作都能满足你的需求。
+无论你是专业作家还是写作爱好者，nspox 都能陪伴你把脑海中的世界一点点写出来。
 
 ![usecases](docs/screenshots/usecases.png)
 
@@ -113,7 +120,7 @@
 ## 项目结构
 
 ```
-qiuqiuwriter/
+nspox/
 ├── frontend/        # 用户端前端（React 19 + TypeScript + Vite，端口 5173）
 ├── admin/           # 管理后台（React 18 + Ant Design，独立 Vite 应用）
 ├── backend/         # API 服务器（FastAPI + Python 3.10+，端口 8001）
@@ -135,6 +142,13 @@ qiuqiuwriter/
 - Node.js **20+** 与 npm **10+**（前端与管理后台统一使用 npm；`package-lock.json` 已纳入版本控制，安装请使用 `npm ci`）
 - Python 3.10+
 - Docker & Docker Compose
+
+### 0. 克隆仓库
+
+```bash
+git clone https://github.com/nspox-project/nspox.git
+cd nspox
+```
 
 ### 1. 启动基础设施
 
