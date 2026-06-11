@@ -24,6 +24,7 @@ done
 # 2. 检查 API 响应 (假设后端暴露在 8000 端口)
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/api/v1/server/status 2>/dev/null || echo "000")
 
+
 if [ "$HTTP_CODE" == "200" ]; then
     echo "✅ 后端 API: 响应正常 (200 OK)"
 else
