@@ -13,6 +13,7 @@
   cursor: se-resize;
   z-index: 9999; /* Ensure it's above modal content */
   touch-action: none;
+  border-color: #1890ff;
 }
 
 .custom-resize-handle::after {
