@@ -115,6 +115,28 @@ npm run dev     # 管理后台，端口 5174
 
 ---
 
+## 干净数据库首次启动验证
+
+仅在本地验证初始化流程时使用以下命令；`down -v` 会删除当前 `nspox` Docker volume 中的数据。
+
+```bash
+docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox down -v
+docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox up -d postgres redis mongodb minio
+```
+
+然后启动后端：
+
+```bash
+conda activate nspox-py311
+cd backend
+export PYTHONPATH="$PWD/src"
+poetry run uvicorn memos.api.ai_api:app --host 0.0.0.0 --port 8000 --reload
+```
+
+干净初始化 SQL 已预置一批未使用的邀请码，注册测试可使用 `docker/postgres/init/01-init.sql` 中 `COPY public.invitation_codes` 段里的未使用记录。注册用户时不应再出现 `column users.plan does not exist`。
+
+---
+
 ## 常见问题
 
 ### 数据库连接失败
