@@ -24,32 +24,33 @@
 
 ### 第一步：启动基础设施
 
+以下命令默认从仓库根目录执行；后端、用户端和管理后台建议分别使用独立终端。
+
 ```bash
-cd docker
-docker compose -f docker-compose.infra.yml up -d postgres redis mongodb
+cp docker/.env.example docker/.env
+docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox up -d postgres redis mongodb minio
 ```
 
 等待所有容器健康检查通过（约 10-30 秒）：
 
 ```bash
-docker compose ps   # STATUS 列应显示 healthy
+docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox ps   # STATUS 列应显示 healthy
 ```
 
 ### 第二步：配置后端环境变量
 
 ```bash
-cd backend
-cp .env.example .env
+cp backend/.env.example backend/.env
 ```
 
-打开 `.env`，至少填写以下必要配置：
+打开 `backend/.env`，至少填写以下必要配置：
 
 ```env
 # 环境与安全
 ENVIRONMENT=development
 SECRET_KEY=example-placeholder-do-not-use
-BACKEND_CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
-ALLOWED_HOSTS=localhost,127.0.0.1
+BACKEND_CORS_ORIGINS='["http://localhost:5173","http://127.0.0.1:5173","http://localhost:5174","http://127.0.0.1:5174","http://localhost:8889"]'
+ALLOWED_HOSTS='["localhost","127.0.0.1","0.0.0.0"]'
 
 # AI 服务（必填）
 OPENAI_API_KEY=example-placeholder-do-not-use
@@ -57,8 +58,8 @@ OPENAI_API_BASE=https://api.deepseek.com/v1   # 或 OpenAI 官方地址
 DEFAULT_AI_MODEL=deepseek-chat
 
 # 数据库（与 docker/.env 保持一致）
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5433
+POSTGRES_HOST=127.0.0.1
+POSTGRES_PORT=5432
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=example-placeholder-do-not-use
 POSTGRES_DB=writerai
@@ -69,27 +70,22 @@ POSTGRES_DB=writerai
 ### 第三步：安装后端依赖并启动
 
 ```bash
+conda activate nspox-py311
 cd backend
-make install    # 等价于 poetry install --with extras
-make serve      # 启动开发服务器，端口 8001
-```
-
-或手动启动：
-
-```bash
-source .venv/bin/activate
-uvicorn memos.api.server_api:app --host 0.0.0.0 --port 8001 --reload
+export PYTHONPATH="$PWD/src"
+poetry install  # 首次运行安装依赖
+poetry run uvicorn memos.api.ai_api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 后端启动成功后，可访问 API 文档：
-- Swagger UI：http://localhost:8001/docs
-- ReDoc：http://localhost:8001/redoc
+- Swagger UI：http://localhost:8000/docs
+- ReDoc：http://localhost:8000/redoc
 
 ### 第四步：安装前端依赖并启动
 
 ```bash
 cd frontend
-npm ci          # 按 package-lock.json 可复现安装；新增依赖时改用 npm install <pkg>
+npm ci          # 或 npm install；按 package-lock.json 可复现安装优先使用 npm ci
 npm run dev     # 开发服务器，端口 5173
 ```
 
@@ -99,15 +95,21 @@ npm run dev     # 开发服务器，端口 5173
 
 ```bash
 cd admin
-npm ci
-npm run dev
+npm ci          # 或 npm install
+npm run dev     # 管理后台，端口 5174
 ```
 
 ---
 
 ## 验证安装
 
-打开浏览器访问 http://localhost:5173，若显示首页则说明前后端均已正常启动。
+打开浏览器访问：
+
+- Backend docs：http://localhost:8000/docs
+- Frontend 用户端：http://localhost:5173
+- Admin 管理后台：http://localhost:5174
+
+用户端和管理后台是两个独立应用；不要把 `http://localhost:5174` 的管理后台登录页误认为用户端页面。
 
 **首次使用注册账号：** 注册需要邀请码，可通过管理后台生成（见[管理后台功能](./features.md#管理后台)）。
 
@@ -121,19 +123,37 @@ npm run dev
 
 ```bash
 docker ps
-docker compose -f docker/docker-compose.infra.yml logs postgres
+docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox logs postgres
 ```
 
 ### 端口冲突
 
 默认端口：
 - 前端：5173
-- 后端：8001
-- PostgreSQL：5433
+- 管理后台：5174
+- 后端：8000
+- PostgreSQL：5432
 - MongoDB：27017
 - Redis：6379
 
 如有冲突，修改 `docker-compose.infra.yml` 中的端口映射，并同步更新 `backend/.env`。
+
+### macOS arm64 npm optional dependencies 缺失
+
+如果启动 frontend 或 admin 时报 Rollup、Lightning CSS、Tailwind oxide native binding 缺失，可在对应前端目录下执行：
+
+```bash
+ROLLUP_VERSION=$(node -p "require('./node_modules/rollup/package.json').version")
+LIGHTNINGCSS_VERSION=$(node -p "require('./node_modules/lightningcss/package.json').version")
+TAILWIND_OXIDE_VERSION=$(node -p "require('./node_modules/@tailwindcss/oxide/package.json').version")
+npm install --no-save \
+  "@rollup/rollup-darwin-arm64@$ROLLUP_VERSION" \
+  "lightningcss-darwin-arm64@$LIGHTNINGCSS_VERSION" \
+  "@tailwindcss/oxide-darwin-arm64@$TAILWIND_OXIDE_VERSION" \
+  --registry=https://registry.npmjs.org/
+```
+
+不要把 `npm audit fix --force` 当作本地启动修复手段，它可能改动依赖树并引入非预期升级。
 
 ### AI 接口无响应
 
