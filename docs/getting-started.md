@@ -45,16 +45,22 @@ cp .env.example .env
 打开 `.env`，至少填写以下必要配置：
 
 ```env
+# 环境与安全
+ENVIRONMENT=development
+SECRET_KEY=example-placeholder-do-not-use
+BACKEND_CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+ALLOWED_HOSTS=localhost,127.0.0.1
+
 # AI 服务（必填）
-OPENAI_API_KEY=your_api_key_here
+OPENAI_API_KEY=example-placeholder-do-not-use
 OPENAI_API_BASE=https://api.deepseek.com/v1   # 或 OpenAI 官方地址
 DEFAULT_AI_MODEL=deepseek-chat
 
-# 数据库（与 docker-compose.infra.yml 保持一致，无需修改）
+# 数据库（与 docker/.env 保持一致）
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5433
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=password
+POSTGRES_PASSWORD=example-placeholder-do-not-use
 POSTGRES_DB=writerai
 ```
 

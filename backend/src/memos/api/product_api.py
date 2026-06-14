@@ -4,6 +4,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
+from memos.api.core.config import get_settings, validate_security_settings
 from memos.api.exceptions import APIExceptionHandler
 from memos.api.middleware.request_context import RequestContextMiddleware
 from memos.api.routers.product_router import router as product_router
@@ -12,6 +13,7 @@ from memos.api.routers.product_router import router as product_router
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+settings = get_settings()
 
 app = FastAPI(
     title="MemOS Product REST APIs",
@@ -23,7 +25,7 @@ app = FastAPI(
 # 配置CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 生产环境应该限制具体域名
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,6 +35,11 @@ app.add_middleware(RequestContextMiddleware, source="product_api")
 
 # Include routers
 app.include_router(product_router)
+
+
+@app.on_event("startup")
+async def startup_security_settings():
+    validate_security_settings(settings)
 
 # 注册作品接口和章节接口
 try:

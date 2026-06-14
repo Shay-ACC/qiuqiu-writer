@@ -118,6 +118,7 @@ docker run -d \
 
 ```bash
 # 应用基础配置
+ENVIRONMENT=development
 DEBUG=true
 HOST=0.0.0.0
 PORT=8000
@@ -126,7 +127,7 @@ PORT=8000
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=password
+POSTGRES_PASSWORD=example-placeholder-do-not-use
 POSTGRES_DB=writerai
 
 # Redis配置
@@ -134,7 +135,9 @@ REDIS_HOST=localhost
 REDIS_PORT=6379
 
 # 安全配置
-SECRET_KEY=your-secret-key
+SECRET_KEY=example-placeholder-do-not-use
+BACKEND_CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+ALLOWED_HOSTS=localhost,127.0.0.1
 ACCESS_TOKEN_EXPIRE_MINUTES=43200
 ```
 

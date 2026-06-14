@@ -5,16 +5,22 @@
 ## 快速配置（最小必要配置）
 
 ```env
+# 环境与安全
+ENVIRONMENT=development
+SECRET_KEY=example-placeholder-do-not-use
+BACKEND_CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+ALLOWED_HOSTS=localhost,127.0.0.1
+
 # AI 服务（必填）
-OPENAI_API_KEY=sk-your-key-here
+OPENAI_API_KEY=example-placeholder-do-not-use
 OPENAI_API_BASE=https://api.deepseek.com/v1
 DEFAULT_AI_MODEL=deepseek-chat
 
-# 数据库（使用默认 Docker 配置则无需修改）
+# 数据库（需与 docker/.env 保持一致）
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5433
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=password
+POSTGRES_PASSWORD=example-placeholder-do-not-use
 POSTGRES_DB=writerai
 
 MONGODB_HOST=localhost
@@ -40,7 +46,7 @@ REDIS_PORT=6379
 
 **使用 OpenAI：**
 ```env
-OPENAI_API_KEY=sk-...
+OPENAI_API_KEY=example-placeholder-do-not-use
 OPENAI_API_BASE=https://api.openai.com/v1
 DEFAULT_AI_MODEL=gpt-4o
 ```
@@ -63,7 +69,7 @@ DEFAULT_AI_MODEL=qwen2.5:7b
 | `POSTGRES_HOST` | `localhost` | 数据库主机 |
 | `POSTGRES_PORT` | `5433` | 端口（Docker 映射为 5433 避免冲突） |
 | `POSTGRES_USER` | `postgres` | 用户名 |
-| `POSTGRES_PASSWORD` | `password` | 密码 |
+| `POSTGRES_PASSWORD` | — | 密码，生产必须设置强随机值 |
 | `POSTGRES_DB` | `writerai` | 数据库名 |
 
 ### MongoDB
@@ -115,7 +121,7 @@ Neo4j 用于记忆系统的知识图谱，默认禁用。
 | `DISABLE_NEO4J` | `true` | 设为 `false` 启用 |
 | `NEO4J_URI` | `bolt://localhost:7687` | Bolt 连接地址 |
 | `NEO4J_USER` | `neo4j` | 用户名 |
-| `NEO4J_PASSWORD` | `12345678` | 密码 |
+| `NEO4J_PASSWORD` | — | 密码，生产必须设置强随机值 |
 | `NEO4J_DB_NAME` | `neo4j` | 数据库名 |
 
 ---
@@ -171,10 +177,11 @@ MemOS 记忆系统让 AI 能够记住用户偏好和历史对话，需配合 Qdr
 
 ## 生产环境注意事项
 
-1. **修改数据库密码** — 不要使用默认的 `password`
-2. **使用强 Secret Key** — JWT 签名密钥应使用随机生成的长字符串
-3. **限制 CORS 来源** — 生产环境配置具体域名，不使用 `*`
-4. **启用 HTTPS** — 通过 Nginx 或 CDN 终止 TLS
-5. **保护 `.env` 文件** — 确保 `.env` 不被提交到版本控制
+1. **设置 `ENVIRONMENT=production`** — 生产启动会校验安全配置。
+2. **使用强 Secret Key** — `SECRET_KEY` 必须是生产专用随机长字符串。
+3. **配置强凭证** — `POSTGRES_PASSWORD`、`REDIS_PASSWORD`、`MONGODB_USERNAME`、`MONGODB_PASSWORD`、`MINIO_ACCESS_KEY`、`MINIO_SECRET_KEY` 不得为空或使用默认值。
+4. **限制 CORS/Host** — `BACKEND_CORS_ORIGINS` 和 `ALLOWED_HOSTS` 必须是明确白名单，生产不得使用 `*`。
+5. **保护 `.env` 文件** — 确保 `.env` 不被提交到版本控制。
+6. **轮换已泄露密钥** — 如果密钥曾进入 Git 历史，必须在供应商后台立即吊销并重新生成。
 
 生产环境变量放在 `docker/.env`（参考 `backend/.env.example`）。

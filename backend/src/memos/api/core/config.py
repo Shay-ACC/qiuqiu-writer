@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     # 应用基础配置
     APP_NAME: str = "WriterAI Backend"
     APP_VERSION: str = "1.0.0"
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", os.getenv("APP_ENV", "development"))
     DEBUG: bool = False
     API_V1_PREFIX: str = "/api/v1"
 
@@ -30,16 +31,24 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:3001",
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:8889",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:3001",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+        "http://127.0.0.1:8889",
         "http://[::1]:3000",
         "http://[::1]:3001",
+        "http://[::1]:5173",
+        "http://[::1]:5174",
     ]
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v):
         if isinstance(v, str):
-            return [i.strip() for i in v.split(",")]
+            return [i.strip() for i in v.split(",") if i.strip()]
         return v
 
     # 安全配置
@@ -71,7 +80,10 @@ class Settings(BaseSettings):
     @property
     def REDIS_URL(self) -> str:
         if self.REDIS_PASSWORD:
-            return f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+            return (
+                f"redis://:{self.REDIS_PASSWORD}@"
+                f"{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+            )
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
 
     # MongoDB配置（ShareDB）
@@ -143,7 +155,7 @@ class Settings(BaseSettings):
     @validator("ALLOWED_HOSTS", pre=True)
     def assemble_allowed_hosts(cls, v):
         if isinstance(v, str):
-            return [i.strip() for i in v.split(",")]
+            return [i.strip() for i in v.split(",") if i.strip()]
         return v
 
     # 日志配置
@@ -179,3 +191,67 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """获取应用配置（单例模式）"""
     return Settings()
+
+
+PRODUCTION_ENVIRONMENTS = {"prod", "production"}
+WEAK_SECRET_VALUES = {
+    "",
+    "CHANGE_ME",
+    "changeme",
+    "change-me",
+    "example-placeholder-do-not-use",
+    "your-secret-key",
+    "your-super-secret-key-change-in-production",
+}
+WEAK_CREDENTIAL_VALUES = WEAK_SECRET_VALUES | {
+    "123456",
+    "12345678",
+    "kangkang123",
+    "minioadmin",
+    "neo4j123",
+    "password",
+}
+
+
+def _is_production(settings: Settings) -> bool:
+    return settings.ENVIRONMENT.lower() in PRODUCTION_ENVIRONMENTS
+
+
+def _is_weak_value(value: Optional[str]) -> bool:
+    if value is None:
+        return True
+    return value.strip() in WEAK_CREDENTIAL_VALUES
+
+
+def validate_security_settings(settings: Optional[Settings] = None) -> None:
+    """Fail fast when production would start with unsafe defaults."""
+    settings = settings or get_settings()
+    if not _is_production(settings):
+        return
+
+    failures: list[str] = []
+
+    secret_key = settings.SECRET_KEY.strip()
+    if secret_key in WEAK_SECRET_VALUES or len(secret_key) < 32:
+        failures.append("SECRET_KEY must be a production-only random value with length >= 32")
+
+    required_credentials = {
+        "POSTGRES_PASSWORD": settings.POSTGRES_PASSWORD,
+        "REDIS_PASSWORD": settings.REDIS_PASSWORD,
+        "MONGODB_USERNAME": settings.MONGODB_USERNAME,
+        "MONGODB_PASSWORD": settings.MONGODB_PASSWORD,
+        "MINIO_ACCESS_KEY": settings.MINIO_ACCESS_KEY,
+        "MINIO_SECRET_KEY": settings.MINIO_SECRET_KEY,
+    }
+    for name, value in required_credentials.items():
+        if _is_weak_value(value):
+            failures.append(f"{name} must be set to a non-default production value")
+
+    if not settings.BACKEND_CORS_ORIGINS or "*" in settings.BACKEND_CORS_ORIGINS:
+        failures.append("BACKEND_CORS_ORIGINS must be a non-empty explicit allowlist")
+
+    if not settings.ALLOWED_HOSTS or "*" in settings.ALLOWED_HOSTS:
+        failures.append("ALLOWED_HOSTS must be a non-empty explicit allowlist")
+
+    if failures:
+        raise RuntimeError("Insecure production settings: " + "; ".join(failures))
