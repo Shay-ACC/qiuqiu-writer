@@ -116,7 +116,7 @@ class NebulaGraphDBConfig(BaseGraphDBConfig):
     ---
     hosts = ["127.0.0.1:9669"]
     user = "root"
-    password = "nebula"
+    password = "example-placeholder-do-not-use"
     space = "shared_graph"
     user_name = "alice"
     """
@@ -169,7 +169,7 @@ class PolarDBGraphDBConfig(BaseConfig):
     host = "localhost"
     port = 5432
     user = "postgres"
-    password = "password"
+    password = "example-placeholder-do-not-use"
     db_name = "memos_db"
     user_name = "alice"
     use_multi_db = True

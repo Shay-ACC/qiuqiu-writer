@@ -57,7 +57,7 @@ def example_mysql():
             host="localhost",
             port=3306,
             username="root",
-            password="your_password",  # Replace with actual password
+            password="example-placeholder-do-not-use",  # Replace with actual password
             database="test_memos_users",
         )
 

@@ -42,7 +42,7 @@ PRO_MODE_WELCOME_MESSAGE = """
    internet_retriever:
      backend: 'google'
      config:
-       api_key: 'your_google_api_key_here'
+       api_key: 'example-placeholder-do-not-use'
        cse_id: 'your_custom_search_engine_id'
        num_results: 5
 details: https://github.com/memos-ai/memos/blob/main/examples/core_memories/tree_textual_w_internet_memoy.py

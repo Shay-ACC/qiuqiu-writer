@@ -34,7 +34,7 @@ def example_multi_db(db_name: str = "paper"):
         config={
             "uri": "bolt://localhost:7687",
             "user": "neo4j",
-            "password": "12345678",
+            "password": "example-placeholder-do-not-use",
             "db_name": db_name,
             "auto_create": True,
             "embedding_dimension": 3072,
@@ -273,7 +273,7 @@ def example_shared_db(db_name: str = "shared-traval-group"):
             config={
                 "uri": "bolt://localhost:7687",
                 "user": "neo4j",
-                "password": "12345678",
+                "password": "example-placeholder-do-not-use",
                 "db_name": db_name,
                 "user_name": user_name,
                 "use_multi_db": False,
@@ -338,7 +338,7 @@ def example_shared_db(db_name: str = "shared-traval-group"):
         config={
             "uri": "bolt://localhost:7687",
             "user": "neo4j",
-            "password": "12345678",
+            "password": "example-placeholder-do-not-use",
             "db_name": db_name,
             "user_name": user_list[0],
             "embedding_dimension": 3072,
@@ -367,7 +367,7 @@ def run_user_session(
             config={
                 "uri": "bolt://localhost:7687",
                 "user": "neo4j",
-                "password": "12345678",
+                "password": "example-placeholder-do-not-use",
                 "db_name": db_name,
                 "user_name": user_name,
                 "use_multi_db": False,
@@ -393,7 +393,7 @@ def run_user_session(
             config={
                 "uri": "bolt://localhost:7687",
                 "user": "neo4j",
-                "password": "12345678",
+                "password": "example-placeholder-do-not-use",
                 "db_name": db_name,
                 "user_name": user_name,
                 "use_multi_db": False,

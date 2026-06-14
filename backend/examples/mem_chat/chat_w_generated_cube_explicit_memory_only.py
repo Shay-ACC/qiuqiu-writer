@@ -59,7 +59,7 @@ config = GeneralMemCubeConfig.model_validate(
                     "config": {
                         "uri": "bolt://localhost:7687",
                         "user": "neo4j",
-                        "password": "12345678",
+                        "password": "example-placeholder-do-not-use",
                         "db_name": "user03alice_mem_cube_3",
                         "auto_create": True,
                     },

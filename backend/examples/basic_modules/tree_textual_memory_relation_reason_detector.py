@@ -33,7 +33,7 @@ graph_config = GraphDBConfigFactory(
     config={
         "uri": "bolt://localhost:7687",
         "user": "neo4j",
-        "password": "12345678",
+        "password": "example-placeholder-do-not-use",
         "db_name": "lucy4",
         "auto_create": True,
     },

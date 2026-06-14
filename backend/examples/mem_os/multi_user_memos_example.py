@@ -60,7 +60,7 @@ def get_config(user_name):
                 "host": os.getenv("MYSQL_HOST", "localhost"),
                 "port": int(os.getenv("MYSQL_PORT", "3306")),
                 "username": os.getenv("MYSQL_USERNAME", "root"),
-                "password": os.getenv("MYSQL_PASSWORD", "12345678"),
+                "password": os.getenv("MYSQL_PASSWORD", "example-placeholder-do-not-use"),
                 "database": os.getenv("MYSQL_DATABASE", "memos_users"),
                 "charset": os.getenv("MYSQL_CHARSET", "utf8mb4"),
             },
@@ -84,7 +84,7 @@ def get_config(user_name):
                         "config": {
                             "uri": os.getenv("NEO4J_URI", "bolt://localhost:7687"),
                             "user": os.getenv("NEO4J_USER", "neo4j"),
-                            "password": os.getenv("NEO4J_PASSWORD", "12345678"),
+                            "password": os.getenv("NEO4J_PASSWORD", "example-placeholder-do-not-use"),
                             "db_name": os.getenv(
                                 "NEO4J_DB_NAME", "shared-tree-textual-memory-test"
                             ),

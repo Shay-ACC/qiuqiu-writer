@@ -1,14 +1,19 @@
 
 import asyncio
+import os
 import sys
 import httpx
 from pathlib import Path
 
 async def test_login():
+    password = os.getenv("NSPOX_ADMIN_PASSWORD")
+    if not password:
+        raise RuntimeError("Set NSPOX_ADMIN_PASSWORD before testing admin login.")
+
     url = "http://localhost:8000/api/v1/admin/auth/login"
     data = {
         "username": "admin",
-        "password": "admin123456"
+        "password": password
     }
     
     async with httpx.AsyncClient() as client:
