@@ -10,9 +10,23 @@
 
 nspox 是一款开源 AI 写作平台，帮助创作者管理作品、章节、素材与协作编辑流程，并通过 AI 辅助完成分析、续写、润色和创作管理。
 
+项目主题是「AI 助力人类构筑专属内心世界」，开源版本聚焦本地开发、私有化部署和可扩展 AI 写作工作流。
+
+[![GitHub](https://img.shields.io/badge/GitHub-nspox--project%2Fnspox-181717?logo=github&logoColor=white)](https://github.com/nspox-project/nspox)
+[![Edition](https://img.shields.io/badge/Edition-%E5%BC%80%E6%BA%90%E7%89%88-2ea44f?style=flat-square)](#项目声明)
+[![Free](https://img.shields.io/badge/Free-%E5%85%8D%E8%B4%B9-3178C6?style=flat-square)](#项目声明)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://python.org)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-4169E1?logo=postgresql&logoColor=white)](https://postgresql.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 [GitHub 仓库](https://github.com/nspox-project/nspox) · [Issues](https://github.com/nspox-project/nspox/issues) · [Discussions](https://github.com/nspox-project/nspox/discussions)
 
 </div>
+
+![hero](docs/screenshots/hero.png)
 
 ---
 
@@ -21,6 +35,40 @@ nspox 是一款开源 AI 写作平台，帮助创作者管理作品、章节、�
 本仓库源码基于 [MIT 协议](LICENSE) 开源，可用于学习、研究、二次开发以及商业部署。
 
 开源版本不包含任何真实生产密钥。提交代码前请确认没有提交 `.env`、真实 API key、token、密码、内部地址、`node_modules`、`dist`、`.DS_Store`、`.trae` 或 `.venv`。
+
+---
+
+## 功能亮点
+
+### 智能写作工作台
+
+从作品规划、章节拆分到正文编辑，nspox 提供围绕长篇创作流程设计的工作台，帮助作者集中管理项目结构和创作状态。
+
+![workbench](docs/screenshots/workbench.png)
+
+### 核心功能一览
+
+平台内置作品管理、章节管理、AI 辅助、素材组织、协作编辑和后台管理等能力，适合小说、剧本、设定集和长文档创作场景。
+
+![features](docs/screenshots/features.png)
+
+### 沉浸式编辑器
+
+编辑器面向连续写作和结构化创作场景，支持章节化内容管理，并与 AI 写作、素材上下文和协作能力配合使用。
+
+![editor](docs/screenshots/editor.png)
+
+### AI 协作助手
+
+AI 能力可用于续写、润色、分析、总结和灵感生成。具体模型供应商由本地环境变量配置，仓库不会提供真实 API key。
+
+![ai-assistant](docs/screenshots/ai-assistant.png)
+
+### 创作场景支持
+
+nspox 适用于个人写作、团队共创、世界观设定、长篇内容管理和私有化 AI 写作实验等场景。
+
+![usecases](docs/screenshots/usecases.png)
 
 ---
 
