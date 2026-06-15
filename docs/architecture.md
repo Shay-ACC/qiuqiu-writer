@@ -18,7 +18,7 @@ nspox 是一个 AI 助力写作平台，支持小说、剧本等多种创作形�
              │ HTTP / WebSocket              │ HTTP
              ▼                              ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                   FastAPI 后端 (端口 8001)                    │
+│                   FastAPI 后端 (端口 8000)                    │
 │                                                             │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌───────────┐  │
 │  │  路由层   │  │  服务层   │  │  模型层   │  │  Schema层 │  │
@@ -194,7 +194,7 @@ admin/src/
 
 ```
 backend/src/memos/api/
-├── server_api.py         # FastAPI 应用入口，注册路由、中间件、异常处理
+├── ai_api.py             # 当前推荐 FastAPI 入口，注册路由、中间件、异常处理
 ├── routers/              # HTTP 路由层（薄层，委托给 services）
 │   ├── auth_router.py
 │   ├── work_router.py
@@ -343,4 +343,3 @@ llms/          book_analysis_service.py
 | 语义搜索 | Qdrant 向量数据库 | `DISABLE_QDRANT=false` |
 | 记忆系统 | Neo4j + MemOS | `DISABLE_NEO4J=false` |
 | 偏好记忆 | MemOS | `ENABLE_PREFERENCE_MEMORY=true` |
-

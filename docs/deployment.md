@@ -1,293 +1,343 @@
 # 部署指南
 
-## 部署架构
+目标：负责人可以按本文完成本地开发部署、Docker Compose staging 部署和生产部署准备。
 
+当前推荐后端入口：
+
+```text
+memos.api.ai_api:app
 ```
-           用户浏览器
-               │
-               ▼
-          Nginx (80/443)
-         /            \
-        ▼              ▼
-   前端静态文件      API 反向代理
-   (/usr/share/      → 后端 FastAPI
-    nginx/html)       (端口 8001)
-                          │
-              ┌───────────┼───────────┐
-              ▼           ▼           ▼
-         PostgreSQL     Redis      MongoDB
+
+当前后端端口：
+
+```text
+8000
 ```
 
 ---
 
-## Docker Compose 部署（推荐）
+## 部署模式总览
 
-### 准备工作
+| 模式 | 适用场景 | 运行方式 |
+|------|----------|----------|
+| 本地开发部署 | 开发、调试、联调 | Docker infra + 本机 backend/frontend/admin |
+| Docker Compose staging | 内网验收、预发布 | Docker Compose 运行 infra、backend、frontend |
+| 生产部署 | 公网服务 | 预构建镜像 + Nginx/HTTPS + 持久化卷 + 备份 |
 
-1. 服务器安装 Docker 和 Docker Compose
+当前 `docker/docker-compose.prod.yml` 是生产模板，包含 backend 和用户端 frontend。管理后台已有 `docker/nginx/admin.conf`，但模板中没有单独 admin 服务；生产需要管理后台时，建议在部署编排中增加独立 Nginx 服务或由外部 Nginx 托管 `admin/dist`。
 
-2. 克隆代码仓库：
-   ```bash
-   git clone <repo-url> qiuqiuwriter
-   cd qiuqiuwriter
-   ```
+---
 
-3. 配置环境变量：
-   ```bash
-   cp backend/.env.example docker/.env
-   # 编辑 docker/.env，填写生产配置
-   ```
+## 本地开发部署
 
-### 生产关键配置（`docker/.env`）
+本地开发请优先使用 [getting-started.md](./getting-started.md) 中的命令。
+
+```bash
+cp docker/.env.example docker/.env
+cp backend/.env.example backend/.env
+docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox up -d postgres redis mongodb minio
+```
+
+后端本机启动：
+
+```bash
+cd backend
+poetry install --extras all --with dev --with test
+export PYTHONPATH="$PWD/src"
+poetry run uvicorn memos.api.ai_api:app --host 0.0.0.0 --port 8000 --reload
+```
+
+用户端：
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+管理后台：
+
+```bash
+cd admin
+npm ci
+npm run dev
+```
+
+---
+
+## Docker Compose staging 部署
+
+staging 可以使用 `docker/docker-compose.prod.yml` 的服务拓扑，但仍建议使用 staging 专用域名、镜像 tag 和 `.env`。
+
+准备环境变量：
+
+```bash
+cp docker/.env.example docker/.env
+```
+
+编辑 `docker/.env`，至少设置：
 
 ```env
-# 环境与安全
 ENVIRONMENT=production
-SECRET_KEY=example-placeholder-do-not-use
-BACKEND_CORS_ORIGINS=https://www.example.com,https://admin.example.com
-ALLOWED_HOSTS=www.example.com,admin.example.com,api.example.com
-
-# AI 服务（必填）
-OPENAI_API_KEY=example-placeholder-do-not-use
-OPENAI_API_BASE=https://api.deepseek.com/v1
-DEFAULT_AI_MODEL=deepseek-chat
-
-# 数据库（使用 Docker 服务名，不是 localhost）
-POSTGRES_HOST=postgres
-POSTGRES_PORT=5432
+SECRET_KEY=<generate-a-strong-random-value>
+BACKEND_CORS_ORIGINS='["https://staging.example.com","https://staging-admin.example.com"]'
+ALLOWED_HOSTS='["staging.example.com","staging-admin.example.com","staging-api.example.com"]'
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=example-placeholder-do-not-use
+POSTGRES_PASSWORD=<strong-postgres-password>
 POSTGRES_DB=writerai
-
-MONGODB_HOST=mongodb
-MONGODB_PORT=27017
+REDIS_PASSWORD=<strong-redis-password>
 MONGODB_DATABASE=writerai_sharedb
-MONGODB_USERNAME=example-placeholder-do-not-use
-MONGODB_PASSWORD=example-placeholder-do-not-use
-
-REDIS_HOST=redis
-REDIS_PORT=6379
-REDIS_PASSWORD=example-placeholder-do-not-use
-
-MINIO_ACCESS_KEY=example-placeholder-do-not-use
-MINIO_SECRET_KEY=example-placeholder-do-not-use
-
-# 服务器配置
-API_HOST=0.0.0.0
-API_PORT=8001
+MONGODB_USERNAME=<strong-mongo-user>
+MONGODB_PASSWORD=<strong-mongo-password>
+MINIO_ACCESS_KEY=<strong-minio-access-key>
+MINIO_SECRET_KEY=<strong-minio-secret-key>
+NEO4J_PASSWORD=<strong-neo4j-password>
+BACKEND_IMAGE=<registry>/<namespace>/nspox-backend:<tag>
 ```
 
-> **注意：** 生产环境中数据库主机名使用 Docker Compose 服务名（`postgres`、`mongodb`、`redis`），而非 `localhost`。
-> 所有 `example-placeholder-do-not-use` 都必须替换为生产专用值，不得原样部署。
+构建用户端静态文件：
 
-### 启动生产环境
+```bash
+cd frontend
+npm ci
+npm run build
+```
+
+如 staging 需要管理后台，也构建 admin：
+
+```bash
+cd admin
+npm ci
+npm run build
+```
+
+启动：
 
 ```bash
 cd docker
-docker compose -f docker-compose.prod.yml up -d
+docker compose --env-file .env -f docker-compose.prod.yml -p nspox-staging up -d
 ```
 
-生产启动前请确认：
-
-- `ENVIRONMENT=production`。
-- `SECRET_KEY` 为生产专用随机值，长度不少于 32 字符。
-- `BACKEND_CORS_ORIGINS` 和 `ALLOWED_HOSTS` 为明确域名白名单，不含 `*`。
-- 数据库、Redis、MongoDB、MinIO 凭证均已配置强随机值。
-- 如果任何真实 API key 曾提交到 Git 历史，必须先在供应商后台轮换，再清理仓库历史。
-
-### 查看运行状态
-
-```bash
-docker compose -f docker-compose.prod.yml ps
-docker compose -f docker-compose.prod.yml logs -f backend
-```
-
-### 更新部署
-
-```bash
-# 拉取最新代码
-git pull
-
-# 重新构建并重启应用容器（基础设施不受影响）
-docker compose -f docker-compose.prod.yml up -d --build backend frontend
-```
-
----
-
-## 镜像构建
-
-项目提供构建脚本：
-
-```bash
-# 构建后端镜像
-./build_image.sh
-```
-
-或手动构建：
-
-```bash
-# 后端
-docker build -t qiuqiuwriter-backend:latest ./backend
-
-# 前端（Nginx 镜像）
-docker build -t qiuqiuwriter-frontend:latest ./frontend
-```
-
----
-
-## 仅启动基础设施
-
-如果后端/前端在宿主机运行（开发调试场景）：
+查看状态和日志：
 
 ```bash
 cd docker
-docker compose -f docker-compose.infra.yml up -d postgres redis mongodb
-```
-
-可选启动向量数据库（语义搜索功能）：
-
-```bash
-docker compose -f docker-compose.infra.yml up -d qdrant
-```
-
-可选启动图数据库（记忆功能）：
-
-```bash
-docker compose -f docker-compose.infra.yml up -d neo4j
+docker compose --env-file .env -f docker-compose.prod.yml -p nspox-staging ps
+docker compose --env-file .env -f docker-compose.prod.yml -p nspox-staging logs -f backend
 ```
 
 ---
 
-## Nginx 配置说明
+## 生产部署注意事项
 
-前端容器使用 Nginx 提供静态文件服务，并将 API 请求反向代理到后端。
+生产环境必须满足：
 
-关键代理规则：
+- `ENVIRONMENT=production`
+- `SECRET_KEY` 是强随机长字符串
+- `BACKEND_CORS_ORIGINS` 是明确域名白名单 JSON 数组，不能是通配
+- `ALLOWED_HOSTS` 是明确域名或 IP 白名单 JSON 数组
+- PostgreSQL、Redis、MongoDB、MinIO、Neo4j 密码必须显式设置
+- 不使用 `example-placeholder-do-not-use`
+- 不使用常见弱口令或示例口令
+- `.env` 不提交到 Git
+
+生成 `SECRET_KEY` 示例：
+
+```bash
+openssl rand -hex 32
+```
+
+生产 `.env` 只放在服务器或密钥管理系统中。不要把真实值写入 `.env.example`、README 或 docs。
+
+---
+
+## Docker 内部服务名
+
+Docker Compose 内部服务互联使用服务名：
+
+| 服务 | Docker 内部 host |
+|------|------------------|
+| PostgreSQL | `postgres` |
+| Redis | `redis` |
+| MongoDB | `mongodb` |
+| Backend | `backend` |
+| MinIO | `minio` |
+
+本机开发连接 Docker infra 时使用 `127.0.0.1` 和映射端口；容器内部互联时使用服务名。
+
+---
+
+## Nginx 反向代理关系
+
+`docker/nginx/frontend.conf`：
+
+- `/` 返回用户端静态文件
+- `/api/` 代理到 `http://backend:8000`
+- `/ai/` 代理到 `http://backend:8000`
+- `/v1/` 代理到 `http://backend:8000`
+- `/api/v1/yjs` 和 `/api/v1/collab-ai` 以 WebSocket 方式代理到 `backend:8000`
+
+`docker/nginx/admin.conf`：
+
+- `/` 返回管理后台静态文件
+- `/api/` 代理到 `http://backend:8000`
+
+如果生产使用外部 Nginx 或云负载均衡，请保持同样的路径转发关系，并在 HTTPS 终止层正确传递：
 
 ```nginx
-# API 代理
-location /api/ {
-    proxy_pass http://backend:8001;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-}
-
-# AI 接口代理
-location /ai/ {
-    proxy_pass http://backend:8001;
-}
-
-# WebSocket 支持（实时协同编辑）
-location /api/v1/yjs/ {
-    proxy_pass http://backend:8001;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-}
-
-# 前端 SPA 路由（所有未匹配路径回退到 index.html）
-location / {
-    try_files $uri $uri/ /index.html;
-}
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;
 ```
 
-> **注意：** Nginx 配置使用服务名（`backend`）而非硬编码 IP，确保容器间正常通信。
+WebSocket 路径需要：
+
+```nginx
+proxy_http_version 1.1;
+proxy_set_header Upgrade $http_upgrade;
+proxy_set_header Connection "upgrade";
+```
 
 ---
 
-## 数据备份
+## 前端和管理端构建
 
-### PostgreSQL 备份
+用户端：
 
 ```bash
-# 备份
-docker exec qiuqiuwriter-postgres pg_dump -U postgres writerai > backup_$(date +%Y%m%d).sql
-
-# 恢复
-docker exec -i qiuqiuwriter-postgres psql -U postgres writerai < backup_20240101.sql
+cd frontend
+npm ci
+npm run build
 ```
 
-### MongoDB 备份
+管理后台：
 
 ```bash
-# 备份
+cd admin
+npm ci
+npm run build
+```
+
+当前 `docker/docker-compose.prod.yml` 示例将 `../frontend/dist` 挂载到 Nginx。生产更推荐将构建产物固化进镜像，或由 CI 生成制品后发布到服务器。
+
+如果部署管理后台，可使用 `docker/nginx/admin.conf` 托管 `admin/dist`，并为它分配独立域名或端口。不要把管理后台和用户端静态文件混到同一个目录。
+
+---
+
+## 数据卷和备份
+
+需要备份的 Docker volumes：
+
+- `postgres_data`
+- `redis_data`
+- `mongodb_data`
+- `minio_data`
+- 如果启用记忆图或向量库，还包括 `neo4j_data`、`qdrant_data`
+
+PostgreSQL 备份：
+
+```bash
+docker exec qiuqiuwriter-postgres pg_dump -U postgres writerai > backup_$(date +%Y%m%d).sql
+```
+
+PostgreSQL 恢复：
+
+```bash
+docker exec -i qiuqiuwriter-postgres psql -U postgres writerai < backup_20260101.sql
+```
+
+MongoDB 备份：
+
+```bash
 docker exec qiuqiuwriter-mongodb mongodump --db writerai_sharedb --out /tmp/mongodump
 docker cp qiuqiuwriter-mongodb:/tmp/mongodump ./mongodump_$(date +%Y%m%d)
-
-# 恢复
-docker cp ./mongodump qiuqiuwriter-mongodb:/tmp/mongodump
-docker exec qiuqiuwriter-mongodb mongorestore /tmp/mongodump
 ```
 
-项目根目录的 `backup.sh` 提供自动化备份脚本：
+MinIO 需要按对象存储策略备份 bucket 数据。生产环境建议使用云对象存储或跨机房备份。
+
+---
+
+## 日志查看
 
 ```bash
-./backup.sh
+cd docker
+docker compose --env-file .env -f docker-compose.prod.yml -p nspox-prod logs -f backend
+docker compose --env-file .env -f docker-compose.prod.yml -p nspox-prod logs --tail=100 frontend
+docker compose --env-file .env -f docker-compose.prod.yml -p nspox-prod ps
 ```
+
+生产 Compose 已限制日志大小。外部 Nginx、云负载均衡和系统日志应纳入统一日志平台。
 
 ---
 
 ## 健康检查
 
-项目提供健康检查脚本：
+后端启动后检查：
 
 ```bash
-./health_check.sh
+curl -f http://127.0.0.1:8000/docs
 ```
 
-所有 Docker 服务均配置了内置健康检查，可通过以下命令查看：
+容器状态：
 
 ```bash
-docker compose ps   # STATUS 列显示 healthy / unhealthy
+cd docker
+docker compose --env-file .env -f docker-compose.prod.yml -p nspox-prod ps
 ```
 
----
-
-## 定时任务
+数据库连通性：
 
 ```bash
-# 安装 cron 定时任务（自动备份、健康检查等）
-./install_cron.sh
-
-# 生产环境任务配置
-./setup_prod_tasks.sh
+docker exec -it qiuqiuwriter-postgres pg_isready -U postgres -d writerai
+docker exec -it qiuqiuwriter-redis redis-cli ping
+docker exec -it qiuqiuwriter-mongodb mongosh --eval "db.adminCommand('ping')"
 ```
 
 ---
 
-## 日志管理
+## 回滚策略
 
-生产环境 Docker 配置了日志大小限制：
-- 单文件最大：100MB
-- 最多保留：3 个文件
+推荐每次部署使用不可变镜像 tag。
 
-查看日志：
+发布前记录当前版本：
 
 ```bash
-# 实时查看后端日志
-docker compose logs -f backend
-
-# 查看最近 100 行
-docker compose logs --tail=100 backend
+cd docker
+docker compose --env-file .env -f docker-compose.prod.yml -p nspox-prod images
 ```
+
+回滚步骤：
+
+```bash
+cd docker
+export BACKEND_IMAGE=<registry>/<namespace>/nspox-backend:<previous-tag>
+docker compose --env-file .env -f docker-compose.prod.yml -p nspox-prod up -d backend
+docker compose --env-file .env -f docker-compose.prod.yml -p nspox-prod logs -f backend
+```
+
+如果本次发布包含数据库变更，必须先确认回滚兼容性。本仓库当前没有引入大型迁移系统，生产变更应单独制定迁移与回滚方案。
 
 ---
 
-## 常用运维命令
+## 大 SQL dump 说明
+
+`deploy/writerai.sql` 当前约数十 MB，适合作为历史导出参考，不适合作为长期源码分发方式。后续建议迁移到更合适的分发方式，例如 Git LFS、Release artifact 或对象存储制品。本次文档治理不移除该文件。
+
+---
+
+## 停止和清理
+
+停止容器，保留数据：
 
 ```bash
-# 停止所有容器（保留数据卷）
-docker compose down
+cd docker
+docker compose --env-file .env -f docker-compose.prod.yml -p nspox-prod down
+```
 
-# 停止并删除所有数据（⚠️ 危险操作，数据不可恢复）
-docker compose down -v
+停止并删除数据卷，生产环境谨慎使用：
 
-# 进入后端容器调试
-docker exec -it qiuqiuwriter-backend bash
-
-# 进入 PostgreSQL 控制台
-docker exec -it qiuqiuwriter-postgres psql -U postgres writerai
-
-# 查看容器资源使用
-docker stats
+```bash
+cd docker
+docker compose --env-file .env -f docker-compose.prod.yml -p nspox-prod down -v
 ```

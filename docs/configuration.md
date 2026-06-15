@@ -1,187 +1,231 @@
 # 配置参考
 
-所有后端配置通过 `backend/.env` 文件加载，由 `backend/src/memos/api/core/config.py` 中的 `Settings` 类解析。
+后端配置由 `backend/src/memos/api/core/config.py` 的 `Settings` 类读取。常用配置来自：
 
-## 快速配置（最小必要配置）
+- 本机后端：`backend/.env`
+- Docker Compose：`docker/.env`
+- 示例模板：`backend/.env.example`、`docker/.env.example`
+
+`.env` 文件不要提交到 Git。
+
+---
+
+## 配置文件职责
+
+| 文件 | 用途 |
+|------|------|
+| `backend/.env.example` | 本机运行 backend 的示例 |
+| `backend/.env` | 本机 backend 实际配置，不提交 |
+| `docker/.env.example` | Docker infra / Docker Compose 的示例 |
+| `docker/.env` | Docker Compose 实际配置，不提交 |
+
+本地开发时，Docker 跑基础设施，本机跑 backend，因此：
 
 ```env
-# 环境与安全
-ENVIRONMENT=development
-SECRET_KEY=example-placeholder-do-not-use
-BACKEND_CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
-ALLOWED_HOSTS=localhost,127.0.0.1
-
-# AI 服务（必填）
-OPENAI_API_KEY=example-placeholder-do-not-use
-OPENAI_API_BASE=https://api.deepseek.com/v1
-DEFAULT_AI_MODEL=deepseek-chat
-
-# 数据库（需与 docker/.env 保持一致）
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5433
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=example-placeholder-do-not-use
-POSTGRES_DB=writerai
-
-MONGODB_HOST=localhost
-MONGODB_PORT=27017
-MONGODB_DATABASE=writerai_sharedb
-
+POSTGRES_HOST=127.0.0.1
+POSTGRES_PORT=5432
 REDIS_HOST=localhost
-REDIS_PORT=6379
+MONGODB_HOST=localhost
+MINIO_ENDPOINT=localhost:9000
 ```
 
----
+Docker 容器内部互联时，host 使用服务名：
 
-## AI 服务配置
-
-| 配置项 | 默认值 | 说明 |
-|--------|--------|------|
-| `OPENAI_API_KEY` | — | AI 服务 API Key（必填） |
-| `OPENAI_API_BASE` | `https://api.deepseek.com/v1` | API 基础地址，支持任意 OpenAI 兼容接口 |
-| `DEFAULT_AI_MODEL` | `deepseek-chat` | 默认使用的模型名称 |
-| `LOG_LEVEL` | `INFO` | 日志级别（DEBUG / INFO / WARNING / ERROR） |
-
-### 切换 AI 提供商示例
-
-**使用 OpenAI：**
 ```env
-OPENAI_API_KEY=example-placeholder-do-not-use
-OPENAI_API_BASE=https://api.openai.com/v1
-DEFAULT_AI_MODEL=gpt-4o
+POSTGRES_HOST=postgres
+REDIS_HOST=redis
+MONGODB_HOST=mongodb
+MINIO_ENDPOINT=minio:9000
 ```
 
-**使用本地 Ollama：**
+---
+
+## 环境与安全
+
+| 变量 | 说明 | 本地示例 |
+|------|------|----------|
+| `ENVIRONMENT` | `development`、`staging`、`production` | `development` |
+| `SECRET_KEY` | JWT 和安全相关密钥 | `example-placeholder-do-not-use` |
+| `BACKEND_CORS_ORIGINS` | 允许跨域来源，JSON 数组 | 见下方 |
+| `ALLOWED_HOSTS` | 允许 Host，JSON 数组 | 见下方 |
+| `API_HOST` | 后端监听地址 | `0.0.0.0` |
+| `API_PORT` | 后端监听端口 | `8000` |
+
+`BACKEND_CORS_ORIGINS` 和 `ALLOWED_HOSTS` 必须使用 JSON 数组格式：
+
 ```env
-OPENAI_API_KEY=ollama
-OPENAI_API_BASE=http://localhost:11434/v1
-DEFAULT_AI_MODEL=qwen2.5:7b
+BACKEND_CORS_ORIGINS='["http://localhost:5173","http://127.0.0.1:5173","http://localhost:5174","http://127.0.0.1:5174","http://localhost:8889"]'
+ALLOWED_HOSTS='["localhost","127.0.0.1","0.0.0.0"]'
 ```
 
----
-
-## 数据库配置
-
-### PostgreSQL
-
-| 配置项 | 默认值 | 说明 |
-|--------|--------|------|
-| `POSTGRES_HOST` | `localhost` | 数据库主机 |
-| `POSTGRES_PORT` | `5433` | 端口（Docker 映射为 5433 避免冲突） |
-| `POSTGRES_USER` | `postgres` | 用户名 |
-| `POSTGRES_PASSWORD` | — | 密码，生产必须设置强随机值 |
-| `POSTGRES_DB` | `writerai` | 数据库名 |
-
-### MongoDB
-
-| 配置项 | 默认值 | 说明 |
-|--------|--------|------|
-| `MONGODB_HOST` | `localhost` | 主机 |
-| `MONGODB_PORT` | `27017` | 端口 |
-| `MONGODB_DATABASE` | `writerai_sharedb` | 数据库名 |
-| `MONGODB_USERNAME` | — | 用户名（可选） |
-| `MONGODB_PASSWORD` | — | 密码（可选） |
-
-### Redis
-
-| 配置项 | 默认值 | 说明 |
-|--------|--------|------|
-| `REDIS_HOST` | `localhost` | 主机 |
-| `REDIS_PORT` | `6379` | 端口 |
-| `REDIS_PASSWORD` | — | 密码（可选） |
+不要写成逗号字符串，否则 Pydantic Settings 会按 `list[str]` 解析失败。
 
 ---
 
-## 向量数据库配置（可选）
+## PostgreSQL
 
-Qdrant 用于语义搜索功能，默认禁用。
+| 变量 | 说明 | 本地示例 |
+|------|------|----------|
+| `POSTGRES_HOST` | 数据库 host | `127.0.0.1` |
+| `POSTGRES_PORT` | 本机映射端口 | `5432` |
+| `POSTGRES_USER` | 数据库用户 | `postgres` |
+| `POSTGRES_PASSWORD` | 数据库密码 | `example-placeholder-do-not-use` |
+| `POSTGRES_DB` | 数据库名 | `writerai` |
 
-| 配置项 | 默认值 | 说明 |
-|--------|--------|------|
-| `DISABLE_QDRANT` | `true` | 设为 `false` 启用 |
-| `QDRANT_HOST` | `127.0.0.1` | Qdrant 主机 |
-| `QDRANT_PORT` | `6333` | HTTP 端口 |
-| `EMBEDDING_DIMENSION` | `768` | 嵌入向量维度 |
+`backend/.env` 和 `docker/.env` 中的 `POSTGRES_USER`、`POSTGRES_PASSWORD`、`POSTGRES_DB` 必须一致。
 
-启动 Qdrant：
+---
+
+## Redis
+
+| 变量 | 说明 |
+|------|------|
+| `REDIS_HOST` | 本机开发通常为 `localhost`，容器内部为 `redis` |
+| `REDIS_PORT` | 默认 `6379` |
+| `REDIS_PASSWORD` | 生产环境必须显式设置 |
+
+本地 infra 的 Redis 默认未启用密码。生产 Compose 使用 `REDIS_PASSWORD`。
+
+---
+
+## MongoDB
+
+| 变量 | 说明 |
+|------|------|
+| `MONGODB_HOST` | 本机开发通常为 `localhost`，容器内部为 `mongodb` |
+| `MONGODB_PORT` | 默认 `27017` |
+| `MONGODB_DATABASE` | 默认 `writerai_sharedb` |
+| `MONGODB_USERNAME` | 生产环境建议设置 |
+| `MONGODB_PASSWORD` | 生产环境建议设置 |
+
+MongoDB 用于 ShareDB 协同文档存储。
+
+---
+
+## MinIO
+
+| 变量 | 说明 |
+|------|------|
+| `MINIO_ENDPOINT` | 本机开发 `localhost:9000`，容器内部 `minio:9000` |
+| `MINIO_ACCESS_KEY` | 访问凭证 |
+| `MINIO_SECRET_KEY` | 访问密钥 |
+
+`backend/.env` 和 `docker/.env` 中的 MinIO 凭证需要一致。
+
+---
+
+## Qdrant 和 Neo4j
+
+Qdrant 和 Neo4j 是可选服务。
+
+| 变量 | 说明 |
+|------|------|
+| `DISABLE_QDRANT` | `true` 时不连接 Qdrant |
+| `QDRANT_HOST` | 本机开发通常为 `127.0.0.1` |
+| `QDRANT_PORT` | 默认 `6333` |
+| `DISABLE_NEO4J` | `true` 时不连接 Neo4j |
+| `NEO4J_URI` | 本机开发通常为 `bolt://localhost:7687` |
+| `NEO4J_USER` | 默认用户 |
+| `NEO4J_PASSWORD` | 生产必须显式设置 |
+| `NEO4J_DB_NAME` | 默认数据库名 |
+
+启动可选服务：
 
 ```bash
-# docker-compose.infra.yml 中已包含 Qdrant 服务，默认注释
-docker compose up -d qdrant
+docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox up -d qdrant neo4j
 ```
 
 ---
 
-## 图数据库配置（可选）
+## AI provider
 
-Neo4j 用于记忆系统的知识图谱，默认禁用。
+| 变量 | 说明 |
+|------|------|
+| `OPENAI_API_KEY` | OpenAI 兼容接口 key |
+| `OPENAI_API_BASE` | OpenAI 兼容接口地址 |
+| `DEFAULT_AI_MODEL` | 默认模型 |
+| `MEMRADER_API_KEY` | 记忆抽取服务 key |
+| `MEMRADER_API_BASE` | 记忆抽取服务地址 |
+| `MEMRADER_MODEL` | 记忆抽取模型 |
 
-| 配置项 | 默认值 | 说明 |
-|--------|--------|------|
-| `DISABLE_NEO4J` | `true` | 设为 `false` 启用 |
-| `NEO4J_URI` | `bolt://localhost:7687` | Bolt 连接地址 |
-| `NEO4J_USER` | `neo4j` | 用户名 |
-| `NEO4J_PASSWORD` | — | 密码，生产必须设置强随机值 |
-| `NEO4J_DB_NAME` | `neo4j` | 数据库名 |
+示例文件只能保留占位符：
 
----
+```env
+OPENAI_API_KEY=example-placeholder-do-not-use
+MEMRADER_API_KEY=example-placeholder-do-not-use
+```
 
-## 记忆系统配置（可选）
-
-MemOS 记忆系统让 AI 能够记住用户偏好和历史对话，需配合 Qdrant 和 Neo4j 使用。
-
-| 配置项 | 默认值 | 说明 |
-|--------|--------|------|
-| `ENABLE_TEXTUAL_MEMORY` | `false` | 启用文本记忆（读写） |
-| `ENABLE_PREFERENCE_MEMORY` | `false` | 启用偏好记忆 |
-| `ENABLE_ACTIVATION_MEMORY` | `false` | 启用激活记忆 |
-| `MOS_USER_ID` | `default_user` | MemOS 用户标识 |
-| `MOS_SESSION_ID` | `default_session` | 会话标识 |
-| `MOS_TOP_K` | `5` | 记忆召回数量 |
-| `MOS_CHAT_MODEL_PROVIDER` | `openai` | 记忆模型提供商 |
-| `MOS_CHAT_MODEL` | `deepseek-chat` | 记忆专用模型 |
-| `MOS_CHAT_TEMPERATURE` | `0.7` | 生成温度 |
-| `MOS_ENABLE_SCHEDULER` | `false` | 启用后台调度器 |
-| `MOS_RERANKER_BACKEND` | `cosine_local` | 重排序方式（本地余弦 / API） |
-| `MOS_EMBEDDER_BACKEND` | `sentence_transformer` | 嵌入模型后端 |
-| `MOS_EMBEDDER_MODEL` | `/app/models/nomic-embed-text-v1.5` | 嵌入模型路径 |
-| `MOS_USER_MANAGER_BACKEND` | `postgres` | 用户管理后端（postgres / sqlite） |
-
-### MemReader（记忆提取）
-
-| 配置项 | 说明 |
-|--------|------|
-| `MEMRADER_API_KEY` | 记忆提取服务 API Key |
-| `MEMRADER_API_BASE` | 记忆提取服务地址 |
-| `MEMRADER_MODEL` | 记忆提取使用的模型 |
+真实 key 只放在本机 `.env`、服务器密钥管理系统或 CI secret 中。
 
 ---
 
-## 本地嵌入模型配置
+## 支付配置
 
-| 配置项 | 默认值 | 说明 |
-|--------|--------|------|
-| `HF_LOCAL_FILES_ONLY` | `true` | 仅使用本地模型文件，不联网下载 |
-| `MOS_EMBEDDER_MODEL` | `/app/models/nomic-embed-text-v1.5` | 嵌入模型本地路径 |
+本地开发可以使用模拟支付：
 
----
+```env
+PAYMENT_MOCK_MODE=true
+```
 
-## API 服务器配置
-
-| 配置项 | 默认值 | 说明 |
-|--------|--------|------|
-| `API_HOST` | `0.0.0.0` | 监听地址 |
-| `API_PORT` | `8001` | 监听端口 |
+生产环境需要填写真实商户配置或官方测试环境配置。不要把商户私钥、证书序列号或回调内部地址写入示例文件和文档。
 
 ---
 
-## 生产环境注意事项
+## Admin 初始化脚本
 
-1. **设置 `ENVIRONMENT=production`** — 生产启动会校验安全配置。
-2. **使用强 Secret Key** — `SECRET_KEY` 必须是生产专用随机长字符串。
-3. **配置强凭证** — `POSTGRES_PASSWORD`、`REDIS_PASSWORD`、`MONGODB_USERNAME`、`MONGODB_PASSWORD`、`MINIO_ACCESS_KEY`、`MINIO_SECRET_KEY` 不得为空或使用默认值。
-4. **限制 CORS/Host** — `BACKEND_CORS_ORIGINS` 和 `ALLOWED_HOSTS` 必须是明确白名单，生产不得使用 `*`。
-5. **保护 `.env` 文件** — 确保 `.env` 不被提交到版本控制。
-6. **轮换已泄露密钥** — 如果密钥曾进入 Git 历史，必须在供应商后台立即吊销并重新生成。
+`backend/scripts/init_admin_auto.py` 会创建默认管理员账号。它不会静默使用弱默认密码，必须显式设置：
 
-生产环境变量放在 `docker/.env`（参考 `backend/.env.example`）。
+```bash
+cd backend
+export NSPOX_ADMIN_PASSWORD="<strong-admin-password>"
+export PYTHONPATH="$PWD/src"
+poetry run python scripts/init_admin_auto.py
+```
+
+`backend/scripts/reset_admin.py` 需要同时设置数据库连接和管理员密码：
+
+```bash
+cd backend
+export DATABASE_URL="postgresql+asyncpg://<user>:<password>@<host>:<port>/<database>"
+export NSPOX_ADMIN_PASSWORD="<strong-admin-password>"
+export PYTHONPATH="$PWD/src"
+poetry run python scripts/reset_admin.py
+```
+
+---
+
+## development 与 production 差异
+
+| 项目 | development | production |
+|------|-------------|------------|
+| `ENVIRONMENT` | `development` | `production` |
+| `SECRET_KEY` | 可用占位符启动本地 | 必须强随机 |
+| CORS/Host | 允许 localhost | 只能是明确域名/IP |
+| 数据库密码 | 可使用本地占位符 | 必须强随机 |
+| Redis/Mongo/MinIO | 可简化本地配置 | 必须显式强凭证 |
+| `.env` 管理 | 本机文件 | 服务器文件或 secret manager |
+
+生产环境不能使用 `example-placeholder-do-not-use`。
+
+---
+
+## 不应提交的文件
+
+不要提交：
+
+```text
+.env
+backend/.env
+docker/.env
+node_modules/
+dist/
+.DS_Store
+.trae/
+.venv/
+```
+
+提交前检查：
+
+```bash
+git status --short
+```

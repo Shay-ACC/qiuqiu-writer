@@ -8,18 +8,7 @@
 
 **让创作更简单，让故事更精彩**
 
-nspox 是一款开源 AI 写作平台，帮助每一位创作者将脑海中的灵感与情感，沉淀为可被书写、收藏与分享的内心世界。
-
-[![GitHub](https://img.shields.io/badge/GitHub-nspox--project%2Fnspox-181717?logo=github&logoColor=white)](https://github.com/nspox-project/nspox)
-[![Edition](https://img.shields.io/badge/Edition-%E5%BC%80%E6%BA%90%E7%89%88-2ea44f?style=flat-square)](#项目声明)
-[![Free](https://img.shields.io/badge/Free-%E5%85%8D%E8%B4%B9-3178C6?style=flat-square)](#项目声明)
-
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://python.org)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-4169E1?logo=postgresql&logoColor=white)](https://postgresql.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+nspox 是一款开源 AI 写作平台，帮助创作者管理作品、章节、素材与协作编辑流程，并通过 AI 辅助完成分析、续写、润色和创作管理。
 
 [GitHub 仓库](https://github.com/nspox-project/nspox) · [Issues](https://github.com/nspox-project/nspox/issues) · [Discussions](https://github.com/nspox-project/nspox/discussions)
 
@@ -29,279 +18,121 @@ nspox 是一款开源 AI 写作平台，帮助每一位创作者将脑海中的�
 
 ## 项目声明
 
-> **本项目为「nspox 开源版」。**
->
-> nspox 的主题是「**AI 助力人类构筑专属内心世界**」——我们相信每个人都拥有独属于自己的精神宇宙，AI 应当成为帮助人类把它书写下来的伙伴，而非替代品。
->
-> 本仓库源码基于 [MIT 协议](LICENSE) 开源，并免费提供给社区使用。
-> 您可以在 MIT 协议范围内用于学习、研究、二次开发以及商业部署，无需额外付费授权。
->
-> 官方仓库：<https://github.com/nspox-project/nspox>
+本仓库源码基于 [MIT 协议](LICENSE) 开源，可用于学习、研究、二次开发以及商业部署。
 
----
-
-![hero](docs/screenshots/hero.png)
-
----
-
-## 功能亮点
-
-### 🖊️ 智能写作工作台
-
-整理、管理并继续完善你的小说与剧本创作资产。支持卡片与列表两种视图，快速定位每一部作品。
-
-![workbench](docs/screenshots/workbench.png)
-
----
-
-### ✨ 核心功能一览
-
-智能写作助手、多格式支持、多人 AI 协作、云端同步、实时编辑、多层记忆系统——一站式满足各类创作需求。
-
-![features](docs/screenshots/features.png)
-
----
-
-### 📖 沉浸式编辑器
-
-基于 TipTap 的富文本编辑器，支持小说、剧本多种写作模式，所见即所得，章节结构清晰直观。
-
-![editor](docs/screenshots/editor.png)
-
----
-
-### 🤖 AI 协作助手
-
-在编辑器内直接与 AI 对话，辅助续写、润色、情节分析。多人协作时 AI 同步为每位作者提供实时支持。
-
-![ai-assistant](docs/screenshots/ai-assistant.png)
-
----
-
-### 🎯 适用于各类创作场景
-
-无论你是专业作家还是写作爱好者，nspox 都能陪伴你把脑海中的世界一点点写出来。
-
-![usecases](docs/screenshots/usecases.png)
+开源版本不包含任何真实生产密钥。提交代码前请确认没有提交 `.env`、真实 API key、token、密码、内部地址、`node_modules`、`dist`、`.DS_Store`、`.trae` 或 `.venv`。
 
 ---
 
 ## 技术栈
 
-### 前端（frontend/）
-- React 19 + TypeScript + Vite
-- TipTap 富文本编辑器
-- Yjs CRDT 协同编辑（y-websocket、y-indexeddb、y-webrtc）
-- React Router v7（懒加载路由）
+| 模块 | 技术 | 默认端口 |
+|------|------|----------|
+| `backend/` | FastAPI + Python 3.10+ + Poetry + SQLAlchemy async | `8000` |
+| `frontend/` | React 19 + TypeScript + Vite + TipTap/Yjs | `5173` |
+| `admin/` | React 18 + Ant Design + Vite | `5174` |
+| `docker/` | PostgreSQL, Redis, MongoDB, MinIO, optional Qdrant/Neo4j | service ports |
 
-### 管理后台（admin/）
-- React 18 + Ant Design
-- 独立 Vite 应用，与前端分离
+当前本地推荐后端入口是：
 
-### 后端（backend/）
-- FastAPI + Python 3.10+
-- Poetry 依赖管理
-- SQLAlchemy ORM（PostgreSQL）
-- Pydantic 请求/响应校验
-- AI 集成：支持 OpenAI 兼容接口（默认 DeepSeek）、Ollama 等
-
-### 数据库
-
-| 服务 | 用途 | 必须 |
-|------|------|------|
-| PostgreSQL | 主数据库（用户、作品、章节） | ✅ |
-| Redis | 缓存与会话 | ✅ |
-| MongoDB | ShareDB 协同文档存储 | ✅ |
-| Qdrant | 向量数据库（语义搜索） | 可选 |
-| Neo4j | 图数据库（记忆功能） | 可选 |
+```bash
+poetry run uvicorn memos.api.ai_api:app --host 0.0.0.0 --port 8000 --reload
+```
 
 ---
 
 ## 项目结构
 
-```
+```text
 nspox/
-├── frontend/        # 用户端前端（React 19 + TypeScript + Vite，端口 5173）
-├── admin/           # 管理后台（React 18 + Ant Design，独立 Vite 应用）
-├── backend/         # API 服务器（FastAPI + Python 3.10+，端口 8000）
-├── docker/          # Docker 基础设施配置
-│   ├── docker-compose.infra.yml   # 基础服务（PostgreSQL、Redis、MongoDB）
-│   ├── docker-compose.app.yml     # 应用服务（前后端容器）
-│   └── docker-compose.prod.yml    # 生产环境配置
-├── deploy/          # 部署相关脚本
-├── start.sh         # 一键启动脚本
-└── README.md
+├── frontend/        # 用户端前端，Vite dev server: http://localhost:5173
+├── admin/           # 管理后台，Vite dev server: http://localhost:5174
+├── backend/         # FastAPI 后端，API docs: http://localhost:8000/docs
+├── docker/          # Docker Compose、Nginx、PostgreSQL 初始化 SQL
+├── deploy/          # 部署辅助文件和历史数据导出
+├── docs/            # 项目文档
+└── start.sh         # 历史一键启动脚本；推荐命令以 docs/getting-started.md 为准
 ```
 
 ---
 
-## 快速开始
+## 文档入口
 
-### 前置条件
+| 目标 | 文档 |
+|------|------|
+| 新人本地启动 | [docs/getting-started.md](docs/getting-started.md) |
+| 环境变量和配置项 | [docs/configuration.md](docs/configuration.md) |
+| 服务器部署 | [docs/deployment.md](docs/deployment.md) |
+| 开发协作、测试、PR 检查 | [docs/development.md](docs/development.md) |
+| 后端单独说明 | [backend/README.md](backend/README.md) |
 
-- Node.js **20+** 与 npm **10+**（前端与管理后台统一使用 npm；`package-lock.json` 已纳入版本控制，安装请使用 `npm ci`）
-- Python 3.10+
-- Docker & Docker Compose
+---
 
-### 0. 克隆仓库
+## 快速本地启动
 
-```bash
-git clone https://github.com/nspox-project/nspox.git
-cd nspox
-```
-
-### 1. 启动基础设施
-
-以下命令默认从仓库根目录执行；后端、用户端和管理后台建议分别使用独立终端。
+完整步骤见 [快速开始](docs/getting-started.md)。最短路径如下，命令默认从仓库根目录执行。
 
 ```bash
 cp docker/.env.example docker/.env
+cp backend/.env.example backend/.env
+```
+
+```bash
 docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox up -d postgres redis mongodb minio
 ```
 
-### 2. 配置后端环境变量
-
 ```bash
-cp backend/.env.example backend/.env
-# 编辑 backend/.env，填写 OPENAI_API_KEY 等配置
-```
-
-主要配置项：
-
-```env
-# 环境与安全
-ENVIRONMENT=development
-SECRET_KEY=example-placeholder-do-not-use
-BACKEND_CORS_ORIGINS='["http://localhost:5173","http://127.0.0.1:5173","http://localhost:5174","http://127.0.0.1:5174","http://localhost:8889"]'
-ALLOWED_HOSTS='["localhost","127.0.0.1","0.0.0.0"]'
-
-# AI 服务
-OPENAI_API_KEY=example-placeholder-do-not-use
-OPENAI_API_BASE=https://api.deepseek.com/v1
-DEFAULT_AI_MODEL=deepseek-chat
-
-# 数据库（与 docker/.env 保持一致）
-POSTGRES_HOST=127.0.0.1
-POSTGRES_PORT=5432
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=example-placeholder-do-not-use
-POSTGRES_DB=writerai
-
-REDIS_HOST=localhost
-REDIS_PORT=6379
-
-MONGODB_HOST=localhost
-MONGODB_PORT=27017
-MONGODB_DATABASE=writerai_sharedb
-```
-
-### 3. 启动后端
-
-```bash
-conda activate nspox-py311
 cd backend
+poetry install --extras all --with dev --with test
 export PYTHONPATH="$PWD/src"
-poetry install # 安装依赖（首次运行）
 poetry run uvicorn memos.api.ai_api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### 4. 启动前端
-
 ```bash
 cd frontend
-npm ci          # 或 npm install；按 package-lock.json 可复现安装优先使用 npm ci
-npm run dev    # 启动开发服务器（端口 5173）
+npm ci
+npm run dev
 ```
-
-### 5. 启动管理后台（可选）
 
 ```bash
 cd admin
-npm ci          # 或 npm install
-npm run dev    # 启动管理后台（端口 5174）
+npm ci
+npm run dev
 ```
 
-### 一键启动（推荐）
+访问地址：
 
-```bash
-./start.sh
-```
+| 服务 | 地址 |
+|------|------|
+| Backend docs | http://localhost:8000/docs |
+| Frontend 用户端 | http://localhost:5173 |
+| Admin 管理后台 | http://localhost:5174 |
 
-### 本地访问地址
-
-- Backend docs：http://localhost:8000/docs
-- Frontend 用户端：http://localhost:5173
-- Admin 管理后台：http://localhost:5174
-
-用户端和管理后台是两个独立 Vite 应用；不要把 `http://localhost:5174` 的管理后台登录页误认为用户端页面。
-
-### macOS arm64 npm optional dependencies 排查
-
-如果在 macOS arm64 上启动 frontend 或 admin 时遇到 Rollup、Lightning CSS、Tailwind oxide native binding 缺失，可在对应前端目录下执行：
-
-```bash
-ROLLUP_VERSION=$(node -p "require('./node_modules/rollup/package.json').version")
-LIGHTNINGCSS_VERSION=$(node -p "require('./node_modules/lightningcss/package.json').version")
-TAILWIND_OXIDE_VERSION=$(node -p "require('./node_modules/@tailwindcss/oxide/package.json').version")
-npm install --no-save \
-  "@rollup/rollup-darwin-arm64@$ROLLUP_VERSION" \
-  "lightningcss-darwin-arm64@$LIGHTNINGCSS_VERSION" \
-  "@tailwindcss/oxide-darwin-arm64@$TAILWIND_OXIDE_VERSION" \
-  --registry=https://registry.npmjs.org/
-```
-
-不要把 `npm audit fix --force` 当作本地启动修复手段，它可能改动依赖树并引入非预期升级。
+注册需要邀请码。本地初始化 SQL 已包含未使用的邀请码种子，查询方式见 [docs/getting-started.md](docs/getting-started.md#注册和邀请码)。
 
 ---
 
-## 开发命令
+## 部署入口
 
-### 前端
+负责人部署服务器前请先阅读 [docs/deployment.md](docs/deployment.md)。生产环境必须显式设置：
 
-```bash
-cd frontend
-npm run dev       # 开发服务器（端口 5173）
-npm run build     # 构建生产版本
-npm run lint      # ESLint 检查
-npm run preview   # 预览生产构建（端口 4173）
-```
+- `ENVIRONMENT=production`
+- 强随机 `SECRET_KEY`
+- 明确的 `BACKEND_CORS_ORIGINS` JSON 数组
+- 明确的 `ALLOWED_HOSTS` JSON 数组
+- 数据库、Redis、MongoDB、MinIO、Neo4j 的强凭证
+- AI provider key 或本地模型配置
 
-### 后端
-
-```bash
-cd backend
-make install      # 安装依赖
-make test         # 运行测试
-make format       # 格式化代码（Ruff）
-make serve        # 启动开发服务器
-
-# 运行指定测试
-poetry run pytest tests/test_specific.py -v
-poetry run pytest tests/ -k "test_name" -v
-```
+生产环境不能使用 `example-placeholder-do-not-use` 或任何弱口令占位符。
 
 ---
 
-## API 文档
+## 安全提醒
 
-后端启动后访问：
-- Swagger UI：http://localhost:8000/docs
-- ReDoc：http://localhost:8000/redoc
-
-API 路由前缀：
-- 主接口：`/api/v1/`
-- AI 服务：`/v1/`
-
----
-
-## 生产部署
-
-```bash
-cd docker
-docker compose -f docker-compose.prod.yml up -d
-```
-
-生产环境变量配置在 `docker/.env`（参考 `backend/.env.example`）。
+- `.env` 只在本机或服务器保存，不提交到 Git。
+- `backend/.env.example` 和 `docker/.env.example` 只能保留占位符。
+- `BACKEND_CORS_ORIGINS` 和 `ALLOWED_HOSTS` 必须使用 JSON 数组格式。
+- 如果真实密钥曾进入 Git 历史，需要先在供应商后台轮换，再清理历史记录。
 
 ---
 

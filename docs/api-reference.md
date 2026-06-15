@@ -1,6 +1,6 @@
 # API 参考
 
-所有接口均在后端 `http://localhost:8001` 提供。交互式文档见 http://localhost:8001/docs。
+所有接口均在后端 `http://localhost:8000` 提供。交互式文档见 http://localhost:8000/docs。
 
 ## 认证说明
 
