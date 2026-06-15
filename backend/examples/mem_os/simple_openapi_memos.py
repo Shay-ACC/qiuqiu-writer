@@ -105,7 +105,7 @@ config = GeneralMemCubeConfig.model_validate(
                     "config": {
                         "uri": neo4j_uri,
                         "user": "neo4j",
-                        "password": "12345678",
+                        "password": "example-placeholder-do-not-use",
                         "db_name": f"db{user_name.replace('-', '')}",
                         "auto_create": True,
                     },

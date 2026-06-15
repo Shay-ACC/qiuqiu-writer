@@ -65,7 +65,7 @@ def get_config(user_id: str):
                     "config": {
                         "uri": "bolt://localhost:7687",
                         "user": "neo4j",
-                        "password": "12345678",
+                        "password": "example-placeholder-do-not-use",
                         "db_name": "neo4j",
                         "user_name": "memosneo4j",
                         "embedding_dimension": 768,

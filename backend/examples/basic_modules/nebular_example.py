@@ -67,7 +67,7 @@ def example_shared_db(db_name: str = "shared-traval-group"):
             config={
                 "uri": json.loads(os.getenv("NEBULAR_HOSTS", "localhost")),
                 "user": os.getenv("NEBULAR_USER", "root"),
-                "password": os.getenv("NEBULAR_PASSWORD", "xxxxxx"),
+                "password": os.getenv("NEBULAR_PASSWORD", "example-placeholder-do-not-use"),
                 "space": db_name,
                 "user_name": user_name,
                 "use_multi_db": False,
@@ -155,7 +155,7 @@ def example_shared_db(db_name: str = "shared-traval-group"):
         config={
             "uri": json.loads(os.getenv("NEBULAR_HOSTS", "localhost")),
             "user": os.getenv("NEBULAR_USER", "root"),
-            "password": os.getenv("NEBULAR_PASSWORD", "xxxxxx"),
+            "password": os.getenv("NEBULAR_PASSWORD", "example-placeholder-do-not-use"),
             "space": db_name,
             "user_name": user_list[0],
             "auto_create": True,
@@ -184,7 +184,7 @@ def run_user_session(
         config={
             "uri": json.loads(os.getenv("NEBULAR_HOSTS", "localhost")),
             "user": os.getenv("NEBULAR_USER", "root"),
-            "password": os.getenv("NEBULAR_PASSWORD", "xxxxxx"),
+            "password": os.getenv("NEBULAR_PASSWORD", "example-placeholder-do-not-use"),
             "space": db_name,
             "user_name": user_name,
             "use_multi_db": False,

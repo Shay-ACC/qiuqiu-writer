@@ -123,7 +123,7 @@ nspox 是一款开源 AI 写作平台，帮助每一位创作者将脑海中的�
 nspox/
 ├── frontend/        # 用户端前端（React 19 + TypeScript + Vite，端口 5173）
 ├── admin/           # 管理后台（React 18 + Ant Design，独立 Vite 应用）
-├── backend/         # API 服务器（FastAPI + Python 3.10+，端口 8001）
+├── backend/         # API 服务器（FastAPI + Python 3.10+，端口 8000）
 ├── docker/          # Docker 基础设施配置
 │   ├── docker-compose.infra.yml   # 基础服务（PostgreSQL、Redis、MongoDB）
 │   ├── docker-compose.app.yml     # 应用服务（前后端容器）
@@ -152,32 +152,39 @@ cd nspox
 
 ### 1. 启动基础设施
 
+以下命令默认从仓库根目录执行；后端、用户端和管理后台建议分别使用独立终端。
+
 ```bash
-cd docker
-docker compose -f docker-compose.infra.yml up -d postgres redis mongodb
+cp docker/.env.example docker/.env
+docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox up -d postgres redis mongodb minio
 ```
 
 ### 2. 配置后端环境变量
 
 ```bash
-cd backend
-cp .env.example .env
-# 编辑 .env，填写 OPENAI_API_KEY 等配置
+cp backend/.env.example backend/.env
+# 编辑 backend/.env，填写 OPENAI_API_KEY 等配置
 ```
 
 主要配置项：
 
 ```env
+# 环境与安全
+ENVIRONMENT=development
+SECRET_KEY=example-placeholder-do-not-use
+BACKEND_CORS_ORIGINS='["http://localhost:5173","http://127.0.0.1:5173","http://localhost:5174","http://127.0.0.1:5174","http://localhost:8889"]'
+ALLOWED_HOSTS='["localhost","127.0.0.1","0.0.0.0"]'
+
 # AI 服务
-OPENAI_API_KEY=your_key_here
+OPENAI_API_KEY=example-placeholder-do-not-use
 OPENAI_API_BASE=https://api.deepseek.com/v1
 DEFAULT_AI_MODEL=deepseek-chat
 
-# 数据库（与 docker-compose.infra.yml 保持一致）
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5433
+# 数据库（与 docker/.env 保持一致）
+POSTGRES_HOST=127.0.0.1
+POSTGRES_PORT=5432
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=password
+POSTGRES_PASSWORD=example-placeholder-do-not-use
 POSTGRES_DB=writerai
 
 REDIS_HOST=localhost
@@ -191,16 +198,18 @@ MONGODB_DATABASE=writerai_sharedb
 ### 3. 启动后端
 
 ```bash
+conda activate nspox-py311
 cd backend
-make install   # 安装依赖（首次运行）
-make serve     # 启动开发服务器（端口 8001）
+export PYTHONPATH="$PWD/src"
+poetry install # 安装依赖（首次运行）
+poetry run uvicorn memos.api.ai_api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ### 4. 启动前端
 
 ```bash
 cd frontend
-npm ci          # 按 package-lock.json 可复现安装；新增依赖时改用 npm install <pkg>
+npm ci          # 或 npm install；按 package-lock.json 可复现安装优先使用 npm ci
 npm run dev    # 启动开发服务器（端口 5173）
 ```
 
@@ -208,8 +217,8 @@ npm run dev    # 启动开发服务器（端口 5173）
 
 ```bash
 cd admin
-npm ci
-npm run dev
+npm ci          # 或 npm install
+npm run dev    # 启动管理后台（端口 5174）
 ```
 
 ### 一键启动（推荐）
@@ -217,6 +226,31 @@ npm run dev
 ```bash
 ./start.sh
 ```
+
+### 本地访问地址
+
+- Backend docs：http://localhost:8000/docs
+- Frontend 用户端：http://localhost:5173
+- Admin 管理后台：http://localhost:5174
+
+用户端和管理后台是两个独立 Vite 应用；不要把 `http://localhost:5174` 的管理后台登录页误认为用户端页面。
+
+### macOS arm64 npm optional dependencies 排查
+
+如果在 macOS arm64 上启动 frontend 或 admin 时遇到 Rollup、Lightning CSS、Tailwind oxide native binding 缺失，可在对应前端目录下执行：
+
+```bash
+ROLLUP_VERSION=$(node -p "require('./node_modules/rollup/package.json').version")
+LIGHTNINGCSS_VERSION=$(node -p "require('./node_modules/lightningcss/package.json').version")
+TAILWIND_OXIDE_VERSION=$(node -p "require('./node_modules/@tailwindcss/oxide/package.json').version")
+npm install --no-save \
+  "@rollup/rollup-darwin-arm64@$ROLLUP_VERSION" \
+  "lightningcss-darwin-arm64@$LIGHTNINGCSS_VERSION" \
+  "@tailwindcss/oxide-darwin-arm64@$TAILWIND_OXIDE_VERSION" \
+  --registry=https://registry.npmjs.org/
+```
+
+不要把 `npm audit fix --force` 当作本地启动修复手段，它可能改动依赖树并引入非预期升级。
 
 ---
 
@@ -251,8 +285,8 @@ poetry run pytest tests/ -k "test_name" -v
 ## API 文档
 
 后端启动后访问：
-- Swagger UI：http://localhost:8001/docs
-- ReDoc：http://localhost:8001/redoc
+- Swagger UI：http://localhost:8000/docs
+- ReDoc：http://localhost:8000/redoc
 
 API 路由前缀：
 - 主接口：`/api/v1/`

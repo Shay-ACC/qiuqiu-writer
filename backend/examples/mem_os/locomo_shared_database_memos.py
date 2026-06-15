@@ -80,7 +80,7 @@ def get_mem_cube_config(user_name):
     neo4j_config = {
         "uri": neo4j_uri,
         "user": "neo4j",
-        "password": "12345678",
+        "password": "example-placeholder-do-not-use",
         "db_name": db_name,
         "user_name": "will be updated",
         "use_multi_db": False,

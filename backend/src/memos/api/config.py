@@ -639,7 +639,7 @@ class APIConfig:
             "uri": os.getenv("NEO4J_URI", "bolt://localhost:7687"),
             "user": os.getenv("NEO4J_USER", "neo4j"),
             "db_name": os.getenv("NEO4J_DB_NAME", "neo4j"),
-            "password": os.getenv("NEO4J_PASSWORD", "12345678"),
+            "password": os.getenv("NEO4J_PASSWORD", "example-placeholder-do-not-use"),
             "user_name": f"memos{user_id.replace('-', '')}",
             "auto_create": False,
             "use_multi_db": False,
@@ -667,7 +667,7 @@ class APIConfig:
             "uri": os.getenv("NEO4J_URI", "bolt://localhost:7687"),
             "user": os.getenv("NEO4J_USER", "neo4j"),
             "db_name": f"memos{user_id.replace('-', '')}",
-            "password": os.getenv("NEO4J_PASSWORD", "12345678"),
+            "password": os.getenv("NEO4J_PASSWORD", "example-placeholder-do-not-use"),
             "auto_create": True,
             "use_multi_db": True,
             "embedding_dimension": int(os.getenv("EMBEDDING_DIMENSION", 3072)),
@@ -680,7 +680,7 @@ class APIConfig:
             "uri": os.getenv("NEO4J_URI", "bolt://localhost:7687"),
             "user": os.getenv("NEO4J_USER", "neo4j"),
             "db_name": os.getenv("NEO4J_DB_NAME", "shared-tree-textual-memory"),
-            "password": os.getenv("NEO4J_PASSWORD", "12345678"),
+            "password": os.getenv("NEO4J_PASSWORD", "example-placeholder-do-not-use"),
             "user_name": f"memos{user_id.replace('-', '')}",
             "auto_create": True,
             "use_multi_db": False,
@@ -693,7 +693,7 @@ class APIConfig:
         return {
             "uri": json.loads(os.getenv("NEBULAR_HOSTS", '["localhost"]')),
             "user": os.getenv("NEBULAR_USER", "root"),
-            "password": os.getenv("NEBULAR_PASSWORD", "xxxxxx"),
+            "password": os.getenv("NEBULAR_PASSWORD", "example-placeholder-do-not-use"),
             "space": os.getenv("NEBULAR_SPACE", "shared-tree-textual-memory"),
             "user_name": f"memos{user_id.replace('-', '')}",
             "use_multi_db": False,
@@ -712,7 +712,7 @@ class APIConfig:
             "distance_metric": "cosine",
             "uri": os.getenv("MILVUS_URI", "http://localhost:19530"),
             "user_name": os.getenv("MILVUS_USER_NAME", "root"),
-            "password": os.getenv("MILVUS_PASSWORD", "12345678"),
+            "password": os.getenv("MILVUS_PASSWORD", "example-placeholder-do-not-use"),
         }
 
     @staticmethod
@@ -733,7 +733,7 @@ class APIConfig:
             "host": os.getenv("POLAR_DB_HOST", "localhost"),
             "port": int(os.getenv("POLAR_DB_PORT", "5432")),
             "user": os.getenv("POLAR_DB_USER", "root"),
-            "password": os.getenv("POLAR_DB_PASSWORD", "123456"),
+            "password": os.getenv("POLAR_DB_PASSWORD", "example-placeholder-do-not-use"),
             "db_name": db_name,
             "user_name": user_name,
             "use_multi_db": use_multi_db,
@@ -748,7 +748,7 @@ class APIConfig:
             "host": os.getenv("MYSQL_HOST", "localhost"),
             "port": int(os.getenv("MYSQL_PORT", "3306")),
             "username": os.getenv("MYSQL_USERNAME", "root"),
-            "password": os.getenv("MYSQL_PASSWORD", "12345678"),
+            "password": os.getenv("MYSQL_PASSWORD", "example-placeholder-do-not-use"),
             "database": os.getenv("MYSQL_DATABASE", "memos_users"),
             "charset": os.getenv("MYSQL_CHARSET", "utf8mb4"),
         }
@@ -760,7 +760,7 @@ class APIConfig:
             "host": os.getenv("POSTGRES_HOST", "localhost"),
             "port": int(os.getenv("POSTGRES_PORT", "5432")),
             "username": os.getenv("POSTGRES_USER", "postgres"),
-            "password": os.getenv("POSTGRES_PASSWORD", "password"),
+            "password": os.getenv("POSTGRES_PASSWORD", "example-placeholder-do-not-use"),
             "database": os.getenv("POSTGRES_DB", "writerai"),
             "charset": os.getenv("POSTGRES_CHARSET", "utf8"),
         }

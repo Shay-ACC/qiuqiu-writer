@@ -49,8 +49,10 @@ class YjsConnectionManager {
     // 创建新连接
     // resyncInterval: 每 20 秒重新发送 sync step1，防止 y-websocket 的 30 秒空闲超时触发断连
     const ydoc = new Y.Doc();
+    const token = localStorage.getItem('access_token');
     const wsProvider = new WebsocketProvider(wsUrl, `work_${workId}`, ydoc, {
       connect: true,
+      params: token ? { token } : {},
       resyncInterval: 20000,
     });
     const idbProvider = new IndexeddbPersistence(`work_${workId}`, ydoc);

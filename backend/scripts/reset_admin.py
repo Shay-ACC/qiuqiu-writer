@@ -16,8 +16,29 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import text
 import bcrypt
 
-# 数据库连接信息
-DATABASE_URL = "postgresql+asyncpg://postgres:password@postgres:5432/writerai"
+DATABASE_URL_ENV = "DATABASE_URL"
+ADMIN_PASSWORD_ENV = "NSPOX_ADMIN_PASSWORD"
+LEGACY_WEAK_ADMIN_PASSWORD = "admin" + "123456"
+WEAK_ADMIN_PASSWORDS = {
+    "",
+    "example-placeholder-do-not-use",
+}
+
+
+def get_required_database_url():
+    database_url = os.getenv(DATABASE_URL_ENV)
+    if not database_url:
+        raise RuntimeError(f"Set {DATABASE_URL_ENV} before resetting the admin password.")
+    return database_url
+
+
+def get_required_admin_password():
+    password = os.getenv(ADMIN_PASSWORD_ENV, "")
+    if password in WEAK_ADMIN_PASSWORDS or password == LEGACY_WEAK_ADMIN_PASSWORD:
+        raise RuntimeError(
+            f"Set {ADMIN_PASSWORD_ENV} to a strong password before resetting the admin password."
+        )
+    return password
 
 # 简化的AdminUser模型
 class AdminUser:
@@ -34,7 +55,7 @@ def get_password_hash(password):
 
 async def get_async_session():
     """创建异步会话"""
-    engine = create_async_engine(DATABASE_URL)
+    engine = create_async_engine(get_required_database_url())
     AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     async with AsyncSessionLocal() as session:
         yield session
@@ -42,7 +63,8 @@ async def get_async_session():
 
 async def reset_admin():
     # 创建异步引擎
-    engine = create_async_engine(DATABASE_URL)
+    new_password = get_required_admin_password()
+    engine = create_async_engine(get_required_database_url())
     AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     
     async with AsyncSessionLocal() as session:
@@ -59,12 +81,12 @@ async def reset_admin():
                 await session.execute(
                     text("UPDATE admin_users SET password_hash = :password_hash WHERE username = :username"),
                     {
-                        "password_hash": get_password_hash("admin123456"),
+                        "password_hash": get_password_hash(new_password),
                         "username": "admin"
                     }
                 )
                 await session.commit()
-                print("✅ Admin password reset to 'admin123456'")
+                print(f"✅ Admin password reset from {ADMIN_PASSWORD_ENV}")
             else:
                 print("❌ Admin user not found")
         except Exception as e:

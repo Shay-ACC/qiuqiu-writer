@@ -18,6 +18,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi.exceptions import RequestValidationError, HTTPException
+from memos.api.core.config import get_settings, validate_security_settings
 from memos.api.exceptions import APIExceptionHandler
 from memos.api.middleware.request_context import RequestContextMiddleware
 from memos.api.routers.ai_router import router as ai_router
@@ -26,6 +27,7 @@ from memos.api.routers.product_router import router as product_router
 # 配置日志
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+settings = get_settings()
 
 # 创建FastAPI应用
 app = FastAPI(
@@ -38,7 +40,7 @@ app = FastAPI(
 # 配置CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 生产环境应该限制具体域名
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -139,6 +141,7 @@ except Exception as e:
 # 数据库初始化：启动时确保所有表存在
 @app.on_event("startup")
 async def startup_db_tables():
+    validate_security_settings(settings)
     try:
         from memos.api.core.database import init_db
         await init_db()

@@ -1,4 +1,5 @@
 import asyncio
+import os
 import sys
 import json
 from pathlib import Path
@@ -16,11 +17,27 @@ from memos.api.schemas.admin import AdminCreateRequest
 from memos.api.models.template import WorkTemplate
 from memos.api.models.prompt_template import PromptTemplate
 
+ADMIN_PASSWORD_ENV = "NSPOX_ADMIN_PASSWORD"
+LEGACY_WEAK_ADMIN_PASSWORD = "admin" + "123456"
+WEAK_ADMIN_PASSWORDS = {
+    "",
+    "example-placeholder-do-not-use",
+}
+
+
+def get_required_admin_password() -> str:
+    password = os.getenv(ADMIN_PASSWORD_ENV, "")
+    if password in WEAK_ADMIN_PASSWORDS or password == LEGACY_WEAK_ADMIN_PASSWORD:
+        raise RuntimeError(
+            f"Set {ADMIN_PASSWORD_ENV} to a strong password before creating the default admin user."
+        )
+    return password
+
+
 async def init_admin_user(session):
     print("Initializing Default Admin User...")
     username = "admin"
     email = "admin@qiuqiu.com"
-    password = "admin123456"
     display_name = "Administrator"
     
     admin_service = AdminService(session)
@@ -28,6 +45,8 @@ async def init_admin_user(session):
     if existing_user:
         print(f"ℹ️ Admin '{username}' already exists.")
         return existing_user
+
+    password = get_required_admin_password()
 
     req = AdminCreateRequest(
         username=username,

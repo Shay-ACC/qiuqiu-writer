@@ -188,7 +188,7 @@ def get_default_cube_config(
             "uri": kwargs.get("neo4j_uri", "bolt://localhost:7687"),
             "user": kwargs.get("neo4j_user", "neo4j"),
             "db_name": db_name,
-            "password": kwargs.get("neo4j_password", "12345678"),
+            "password": kwargs.get("neo4j_password", "example-placeholder-do-not-use"),
             "auto_create": True,
             "use_multi_db": kwargs.get("use_multi_db", False),
             "embedding_dimension": kwargs.get("embedding_dimension", 3072),

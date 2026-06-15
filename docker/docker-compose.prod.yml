@@ -30,7 +30,7 @@ services:
     image: redis:7-alpine
     container_name: qiuqiuwriter-redis
     restart: always
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?Set REDIS_PASSWORD in docker/.env}
     volumes:
       - redis_data:/data
     logging:
@@ -46,6 +46,8 @@ services:
     restart: always
     environment:
       MONGO_INITDB_DATABASE: ${MONGODB_DATABASE}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME:?Set MONGODB_USERNAME in docker/.env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:?Set MONGODB_PASSWORD in docker/.env}
     volumes:
       - mongodb_data:/data/db
     networks:

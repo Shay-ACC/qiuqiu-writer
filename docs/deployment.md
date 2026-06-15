@@ -41,8 +41,14 @@
 ### 生产关键配置（`docker/.env`）
 
 ```env
+# 环境与安全
+ENVIRONMENT=production
+SECRET_KEY=example-placeholder-do-not-use
+BACKEND_CORS_ORIGINS=https://www.example.com,https://admin.example.com
+ALLOWED_HOSTS=www.example.com,admin.example.com,api.example.com
+
 # AI 服务（必填）
-OPENAI_API_KEY=sk-your-production-key
+OPENAI_API_KEY=example-placeholder-do-not-use
 OPENAI_API_BASE=https://api.deepseek.com/v1
 DEFAULT_AI_MODEL=deepseek-chat
 
@@ -50,15 +56,21 @@ DEFAULT_AI_MODEL=deepseek-chat
 POSTGRES_HOST=postgres
 POSTGRES_PORT=5432
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=StrongProductionPassword!
+POSTGRES_PASSWORD=example-placeholder-do-not-use
 POSTGRES_DB=writerai
 
 MONGODB_HOST=mongodb
 MONGODB_PORT=27017
 MONGODB_DATABASE=writerai_sharedb
+MONGODB_USERNAME=example-placeholder-do-not-use
+MONGODB_PASSWORD=example-placeholder-do-not-use
 
 REDIS_HOST=redis
 REDIS_PORT=6379
+REDIS_PASSWORD=example-placeholder-do-not-use
+
+MINIO_ACCESS_KEY=example-placeholder-do-not-use
+MINIO_SECRET_KEY=example-placeholder-do-not-use
 
 # 服务器配置
 API_HOST=0.0.0.0
@@ -66,6 +78,7 @@ API_PORT=8001
 ```
 
 > **注意：** 生产环境中数据库主机名使用 Docker Compose 服务名（`postgres`、`mongodb`、`redis`），而非 `localhost`。
+> 所有 `example-placeholder-do-not-use` 都必须替换为生产专用值，不得原样部署。
 
 ### 启动生产环境
 
@@ -73,6 +86,14 @@ API_PORT=8001
 cd docker
 docker compose -f docker-compose.prod.yml up -d
 ```
+
+生产启动前请确认：
+
+- `ENVIRONMENT=production`。
+- `SECRET_KEY` 为生产专用随机值，长度不少于 32 字符。
+- `BACKEND_CORS_ORIGINS` 和 `ALLOWED_HOSTS` 为明确域名白名单，不含 `*`。
+- 数据库、Redis、MongoDB、MinIO 凭证均已配置强随机值。
+- 如果任何真实 API key 曾提交到 Git 历史，必须先在供应商后台轮换，再清理仓库历史。
 
 ### 查看运行状态
 
