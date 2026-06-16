@@ -31,6 +31,6 @@
 qiuqiuwriter/
 ├── frontend/     # 用户端前端  React 19 + TypeScript + Vite  端口 5173
 ├── admin/        # 管理后台   React 18 + Ant Design          独立端口
-├── backend/      # API 服务   FastAPI + Python 3.10+         端口 8001
+├── backend/      # API 服务   FastAPI + Python 3.10+         端口 8000
 └── docker/       # 基础设施   PostgreSQL · Redis · MongoDB
 ```

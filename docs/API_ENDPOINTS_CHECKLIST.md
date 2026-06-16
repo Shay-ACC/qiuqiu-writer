@@ -2,7 +2,7 @@
 
 ## 本次修改
 
-1. **templates 列表**：前端 `templatesApi.listTemplates()` 由 `/api/v1/templates` 改为 `/api/v1/templates/`（带尾斜杠），与后端 `GET /` 拼出路径 `/api/v1/templates/` 一致，避免 307 重定向导致请求跑到 8001。
+1. **templates 列表**：前端 `templatesApi.listTemplates()` 由 `/api/v1/templates` 改为 `/api/v1/templates/`（带尾斜杠），与后端 `GET /` 拼出路径 `/api/v1/templates/` 一致，避免 307 重定向。
 
 ## 后端路由前缀（backend）
 
@@ -38,11 +38,11 @@
 
 ## 开发环境代理（Vite）
 
-- `/api` → `http://localhost:8001`（覆盖 /api/v1/*）
-- `/ai` → `http://localhost:8001`
-- `/v1` → `http://localhost:8001`（覆盖 /v1/sharedb）
+- `/api` → `http://localhost:8000`（覆盖 /api/v1/*）
+- `/ai` → `http://localhost:8000`
+- `/v1` → `http://localhost:8000`（覆盖 /v1/sharedb）
 
-因此所有 `/api/v1/*`、`/ai/*`、`/v1/*` 请求在浏览器中会先发到 5173，再被代理到 8001。
+因此所有 `/api/v1/*`、`/ai/*`、`/v1/*` 请求在浏览器中会先发到 5173，再被代理到 8000。
 
 ## 注意事项
 

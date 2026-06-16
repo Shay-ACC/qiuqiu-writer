@@ -1,63 +1,87 @@
-# 快速开始
+# 快速开始：本地开发
 
-## 前置条件
+目标：新人可以按本文在本机启动 Docker 基础设施、后端、用户端和管理后台。
 
-| 工具 | 版本要求 |
-|------|----------|
-| Node.js | 20+（前端要求 npm ≥ 10） |
-| Python | 3.10+ |
-| Docker & Docker Compose | 任意最新版 |
-| Poetry | 1.8+ |
-
-## 一键启动（推荐）
-
-```bash
-# 克隆仓库后，在项目根目录执行
-./start.sh
-```
-
-该脚本会自动启动基础设施容器、后端服务和前端开发服务器。
+本文推荐的本地模式是：Docker 运行 PostgreSQL、Redis、MongoDB、MinIO；本机运行 backend、frontend、admin。
 
 ---
 
-## 手动逐步启动
+## 环境要求
 
-### 第一步：启动基础设施
+| 工具 | 要求 |
+|------|------|
+| 操作系统 | macOS 或 Linux |
+| Git | 可 clone、fork、管理 upstream |
+| Docker | Docker Desktop 或 Docker Engine |
+| Docker Compose | `docker compose` 子命令可用 |
+| Python | Python 3.10+，推荐 Python 3.11 |
+| Poetry | 用于后端依赖管理 |
+| Node.js | `>=20` |
+| npm | `>=10` |
 
-以下命令默认从仓库根目录执行；后端、用户端和管理后台建议分别使用独立终端。
+检查命令：
+
+```bash
+git --version
+docker version
+docker compose version
+python --version
+poetry --version
+node --version
+npm --version
+```
+
+---
+
+## Fork 和 clone
+
+推荐使用 fork 协作：`origin` 指向个人 fork，`upstream` 指向主仓库。
+
+```bash
+git clone git@github.com:<your-user>/nspox.git
+cd nspox
+git remote add upstream https://github.com/nspox-project/nspox.git
+git remote -v
+```
+
+同步主仓库：
+
+```bash
+git fetch upstream
+git checkout main
+git merge upstream/main
+```
+
+创建工作分支：
+
+```bash
+git checkout -b docs/local-startup-notes
+```
+
+---
+
+## 准备环境变量
+
+从仓库根目录执行：
 
 ```bash
 cp docker/.env.example docker/.env
-docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox up -d postgres redis mongodb minio
-```
-
-等待所有容器健康检查通过（约 10-30 秒）：
-
-```bash
-docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox ps   # STATUS 列应显示 healthy
-```
-
-### 第二步：配置后端环境变量
-
-```bash
 cp backend/.env.example backend/.env
 ```
 
-打开 `backend/.env`，至少填写以下必要配置：
+本地开发重点：
+
+- `docker/.env` 给 Docker infra 使用。
+- `backend/.env` 给本机 backend 使用。
+- `POSTGRES_USER`、`POSTGRES_PASSWORD`、`POSTGRES_DB` 需要在两个文件中保持一致。
+- `MINIO_ACCESS_KEY`、`MINIO_SECRET_KEY` 需要在两个文件中保持一致。
+- `BACKEND_CORS_ORIGINS` 和 `ALLOWED_HOSTS` 必须是 JSON 数组格式，不是逗号字符串。
+
+本地示例：
 
 ```env
-# 环境与安全
-ENVIRONMENT=development
-SECRET_KEY=example-placeholder-do-not-use
 BACKEND_CORS_ORIGINS='["http://localhost:5173","http://127.0.0.1:5173","http://localhost:5174","http://127.0.0.1:5174","http://localhost:8889"]'
 ALLOWED_HOSTS='["localhost","127.0.0.1","0.0.0.0"]'
-
-# AI 服务（必填）
-OPENAI_API_KEY=example-placeholder-do-not-use
-OPENAI_API_BASE=https://api.deepseek.com/v1   # 或 OpenAI 官方地址
-DEFAULT_AI_MODEL=deepseek-chat
-
-# 数据库（与 docker/.env 保持一致）
 POSTGRES_HOST=127.0.0.1
 POSTGRES_PORT=5432
 POSTGRES_USER=postgres
@@ -65,104 +89,236 @@ POSTGRES_PASSWORD=example-placeholder-do-not-use
 POSTGRES_DB=writerai
 ```
 
-完整配置项说明见 [配置参考](./configuration.md)。
+真实 API key、token、密码、内部地址不要写入 `.env.example`、README 或 docs。
 
-### 第三步：安装后端依赖并启动
+---
+
+## 启动 Docker infra
+
+启动必要基础设施：
+
+```bash
+docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox up -d postgres redis mongodb minio
+```
+
+查看状态：
+
+```bash
+docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox ps
+```
+
+可选启动 Qdrant 和 Neo4j：
+
+```bash
+docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox up -d qdrant neo4j
+```
+
+---
+
+## 启动 backend
+
+使用 conda 的示例：
 
 ```bash
 conda activate nspox-py311
 cd backend
+poetry install --extras all --with dev --with test
 export PYTHONPATH="$PWD/src"
-poetry install  # 首次运行安装依赖
 poetry run uvicorn memos.api.ai_api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-后端启动成功后，可访问 API 文档：
-- Swagger UI：http://localhost:8000/docs
-- ReDoc：http://localhost:8000/redoc
+不使用 conda 时，确保当前 shell 使用 Python 3.10+，推荐 Python 3.11，然后执行同样的 `poetry install` 和 `uvicorn` 命令。
 
-### 第四步：安装前端依赖并启动
+当前推荐后端入口：
+
+```text
+memos.api.ai_api:app
+```
+
+当前推荐后端端口：
+
+```text
+8000
+```
+
+---
+
+## 启动 frontend
+
+新开一个终端，从仓库根目录执行：
 
 ```bash
 cd frontend
-npm ci          # 或 npm install；按 package-lock.json 可复现安装优先使用 npm ci
-npm run dev     # 开发服务器，端口 5173
+npm ci
+npm run dev
 ```
 
-前端通过 Vite 代理将 `/api`、`/ai`、`/v1` 请求转发到后端 `http://127.0.0.1:8000`。
+如果你正在主动更新依赖，才使用：
 
-### 第五步：启动管理后台（可选）
+```bash
+cd frontend
+npm install
+```
+
+---
+
+## 启动 admin
+
+新开一个终端，从仓库根目录执行：
 
 ```bash
 cd admin
-npm ci          # 或 npm install
-npm run dev     # 管理后台，端口 5174
+npm ci
+npm run dev
+```
+
+如果你正在主动更新依赖，才使用：
+
+```bash
+cd admin
+npm install
 ```
 
 ---
 
-## 验证安装
+## 访问地址
 
-打开浏览器访问：
+| 服务 | 地址 |
+|------|------|
+| Backend docs | http://localhost:8000/docs |
+| Frontend 用户端 | http://localhost:5173 |
+| Admin 管理后台 | http://localhost:5174 |
 
-- Backend docs：http://localhost:8000/docs
-- Frontend 用户端：http://localhost:5173
-- Admin 管理后台：http://localhost:5174
-
-用户端和管理后台是两个独立应用；不要把 `http://localhost:5174` 的管理后台登录页误认为用户端页面。
-
-**首次使用注册账号：** 注册需要邀请码，可通过管理后台生成（见[管理后台功能](./features.md#管理后台)）。
+打开 `http://localhost:5174` 看到 Admin Login 是正常的；用户端是 `http://localhost:5173`。
 
 ---
 
-## 干净数据库首次启动验证
+## 注册和邀请码
 
-仅在本地验证初始化流程时使用以下命令；`down -v` 会删除当前 `nspox` Docker volume 中的数据。
+本地注册需要邀请码。干净数据库初始化时，`docker/postgres/init/01-init.sql` 已包含一批未使用的邀请码 seed。
+
+查询邀请码：
+
+```bash
+docker exec -it qiuqiuwriter-postgres psql -U postgres -d writerai -c "SELECT code, used FROM invitation_codes ORDER BY id LIMIT 10;"
+```
+
+如果你已经用掉了 seed 邀请码，可以通过管理后台生成新的邀请码。
+
+---
+
+## 干净数据库验证
+
+仅本地验证初始化流程时使用。`down -v` 会删除当前 `nspox` Docker volume 中的数据库数据。
 
 ```bash
 docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox down -v
 docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox up -d postgres redis mongodb minio
 ```
 
-然后启动后端：
+然后重新启动 backend：
 
 ```bash
-conda activate nspox-py311
 cd backend
 export PYTHONPATH="$PWD/src"
 poetry run uvicorn memos.api.ai_api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-干净初始化 SQL 已预置一批未使用的邀请码，注册测试可使用 `docker/postgres/init/01-init.sql` 中 `COPY public.invitation_codes` 段里的未使用记录。注册用户时不应再出现 `column users.plan does not exist`。
+验证步骤：
+
+```bash
+docker exec -it qiuqiuwriter-postgres psql -U postgres -d writerai -c "\d users"
+docker exec -it qiuqiuwriter-postgres psql -U postgres -d writerai -c "SELECT code FROM invitation_codes WHERE used = 0 LIMIT 1;"
+```
+
+用未使用邀请码注册新用户，确认注册流程不再报 `column users.plan does not exist`。
+
+---
+
+## 停止服务
+
+停止本机业务服务：
+
+```text
+在 backend、frontend、admin 对应终端按 Ctrl+C
+```
+
+停止 Docker infra，保留数据：
+
+```bash
+docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox down
+```
+
+停止 Docker infra，并删除本地数据库数据：
+
+```bash
+docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox down -v
+```
+
+---
+
+## 清理本地依赖
+
+清理前端依赖：
+
+```bash
+rm -rf frontend/node_modules admin/node_modules
+```
+
+不要删除 `package-lock.json`。lockfile 已纳入版本控制，用于可复现安装。
+
+清理后端虚拟环境时，确认当前没有在使用它：
+
+```bash
+rm -rf backend/.venv
+```
 
 ---
 
 ## 常见问题
 
-### 数据库连接失败
+### BACKEND_CORS_ORIGINS 或 ALLOWED_HOSTS JSONDecodeError
 
-检查 Docker 容器是否正常运行：
+原因通常是写成逗号字符串。正确格式：
+
+```env
+BACKEND_CORS_ORIGINS='["http://localhost:5173","http://127.0.0.1:5173"]'
+ALLOWED_HOSTS='["localhost","127.0.0.1","0.0.0.0"]'
+```
+
+### greenlet 缺失
+
+后端使用 SQLAlchemy async engine。请确认已安装 lockfile 中声明的依赖：
 
 ```bash
-docker ps
+cd backend
+poetry install --extras all --with dev --with test
+poetry run python -c "import greenlet; print(greenlet.__version__)"
+```
+
+### PostgreSQL Connection refused
+
+确认 Docker infra 已启动，且 `backend/.env` 使用本机映射地址：
+
+```env
+POSTGRES_HOST=127.0.0.1
+POSTGRES_PORT=5432
+```
+
+检查容器：
+
+```bash
+docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox ps postgres
 docker compose --env-file docker/.env -f docker/docker-compose.infra.yml -p nspox logs postgres
 ```
 
-### 端口冲突
+### users.plan does not exist
 
-默认端口：
-- 前端：5173
-- 管理后台：5174
-- 后端：8000
-- PostgreSQL：5432
-- MongoDB：27017
-- Redis：6379
+这是旧初始化 SQL 导致的干净数据库 schema 漂移。更新代码后执行干净数据库验证流程，确认 `users` 表包含 `plan`、`token_remaining`、`token_reset_at`、`plan_expires_at` 和 `media_credits`。
 
-如有冲突，修改 `docker-compose.infra.yml` 中的端口映射，并同步更新 `backend/.env`。
+### macOS arm64 native binding 缺失
 
-### macOS arm64 npm optional dependencies 缺失
-
-如果启动 frontend 或 admin 时报 Rollup、Lightning CSS、Tailwind oxide native binding 缺失，可在对应前端目录下执行：
+如果启动 frontend 或 admin 时报 Rollup、Lightning CSS、Tailwind oxide native binding 缺失，在对应目录执行：
 
 ```bash
 ROLLUP_VERSION=$(node -p "require('./node_modules/rollup/package.json').version")
@@ -175,12 +331,10 @@ npm install --no-save \
   --registry=https://registry.npmjs.org/
 ```
 
-不要把 `npm audit fix --force` 当作本地启动修复手段，它可能改动依赖树并引入非预期升级。
+不要使用 `npm audit fix --force` 作为本地启动修复手段。
 
-### AI 接口无响应
+### 端口混淆
 
-确认 `.env` 中的 `OPENAI_API_KEY` 和 `OPENAI_API_BASE` 配置正确，可用 `curl` 测试：
-
-```bash
-curl -H "Authorization: Bearer $OPENAI_API_KEY" $OPENAI_API_BASE/models
-```
+- `5173` 是用户端。
+- `5174` 是管理后台。
+- `8000` 是后端 API 和 API docs。

@@ -150,7 +150,7 @@
 - [ ] `.env.example` 补齐：
   ```
   SECRET_KEY=    # REQUIRED in production. Generate with: openssl rand -hex 32
-  ALLOWED_HOSTS=localhost,127.0.0.1    # Comma-separated, NEVER use * in production
+  ALLOWED_HOSTS='["localhost","127.0.0.1"]'    # JSON array, NEVER use wildcard in production
   ENVIRONMENT=development    # development | staging | production
   ```
 - [ ] 在 `docs/configuration.md` 中补一段 production 部署配置清单
