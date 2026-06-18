@@ -2,7 +2,7 @@
 # 替代 start.sh 的功能，用于管理 Docker 容器和服务
 
 # 变量定义
-DOCKER_COMPOSE = docker-compose
+DOCKER_COMPOSE ?= docker compose
 DOCKER_DIR = docker
 INFRA_COMPOSE = -f $(DOCKER_DIR)/docker-compose.infra.yml -p qiuqiuwriter-infra
 APP_COMPOSE = -f $(DOCKER_DIR)/docker-compose.app.yml -p qiuqiuwriter-app
