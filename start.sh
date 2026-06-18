@@ -10,6 +10,10 @@ BUILD_ADMIN=false
 BUILD_BACKEND=false
 REBUILD=false
 
+docker_compose() {
+    docker compose "$@"
+}
+
 # 检查参数
 for arg in "$@"; do
     case $arg in
@@ -60,7 +64,7 @@ fi
 if [ "$REBUILD" = true ]; then
     echo "🛑 正在停止应用容器以进行重建..."
     # 仅停止 app 相关的容器
-    docker-compose -f docker/docker-compose.app.yml -p qiuqiuwriter-app down
+    docker_compose -f docker/docker-compose.app.yml -p qiuqiuwriter-app down
 fi
 
 # ---------- 构建后端 Docker 镜像 ----------
@@ -133,14 +137,14 @@ if [ "$USE_DOCKER" = true ]; then
         echo "  - 启动基础设施 (postgres, redis, mongodb...)"
         # 使用 -p qiuqiuwriter-infra 保持独立的项目名称
         # --no-recreate: 如果容器已经存在，不要重新创建，防止数据丢失或不必要的重启
-        docker-compose -f docker-compose.infra.yml -p qiuqiuwriter-infra up -d --no-recreate --remove-orphans
+        docker_compose -f docker-compose.infra.yml -p qiuqiuwriter-infra up -d --no-recreate --remove-orphans
     fi
     
     # 应用容器
     if [ "$START_APP" = true ]; then
         echo "  - 启动应用服务 (backend, frontend, admin)"
         # 使用 -p qiuqiuwriter-app 保持独立的项目名称
-        docker-compose -f docker-compose.app.yml -p qiuqiuwriter-app up -d --remove-orphans
+        docker_compose -f docker-compose.app.yml -p qiuqiuwriter-app up -d --remove-orphans
     fi
     
     echo ""
@@ -152,15 +156,15 @@ if [ "$USE_DOCKER" = true ]; then
     echo "后端 API: http://localhost:8000"
     echo "API 文档: http://localhost:8000/docs"
     echo ""
-    echo "使用 'cd docker && docker-compose -f ... logs -f' 查看实时日志"
+    echo "使用 'cd docker && docker compose -f ... logs -f' 查看实时日志"
     echo "按 Ctrl+C 退出日志查看（容器将继续运行）"
     echo ""
     
     # 显示日志 (优先显示 App 日志，如果只启动了 Infra 则显示 Infra 日志)
     if [ "$START_APP" = true ]; then
-        docker-compose -f docker-compose.app.yml -p qiuqiuwriter-app logs -f
+        docker_compose -f docker-compose.app.yml -p qiuqiuwriter-app logs -f
     elif [ "$START_INFRA" = true ]; then
-        docker-compose -f docker-compose.infra.yml -p qiuqiuwriter-infra logs -f
+        docker_compose -f docker-compose.infra.yml -p qiuqiuwriter-infra logs -f
     fi
     exit 0
 fi
@@ -172,7 +176,7 @@ if command -v docker &> /dev/null && docker info > /dev/null 2>&1; then
     echo "检查依赖服务..."
     cd "$(dirname "$0")/docker" || exit 1
     # 只启动基础设施
-    docker-compose -f docker-compose.infra.yml -p qiuqiuwriter-infra up -d 2>/dev/null
+    docker_compose -f docker-compose.infra.yml -p qiuqiuwriter-infra up -d 2>/dev/null
     cd ..
     echo "✓ 依赖服务已启动"
 fi

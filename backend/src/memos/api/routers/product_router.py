@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from memos.api.config import APIConfig
 from memos.api.core.database import get_async_db, AsyncSessionLocal
+from memos.api.serialization import serialize_product_user
 from memos.api.services.mention_service import MentionService
 from memos.api.services.book_analysis_service import BookAnalysisService
 from memos.api.services.chapter_service import ChapterService
@@ -1850,7 +1851,7 @@ def list_users():
     """List all registered users."""
     try:
         mos_product = get_mos_product_instance()
-        users = mos_product.list_users()
+        users = [serialize_product_user(user) for user in mos_product.list_users()]
         return BaseResponse(message="Users retrieved successfully", data=users)
     except Exception as err:
         logger.error(f"Failed to list users: {traceback.format_exc()}")

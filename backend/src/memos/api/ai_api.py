@@ -98,13 +98,6 @@ register_router('memos.api.routers.feedback_router')
 register_router('memos.api.routers.payment_router')
 register_router('memos.api.routers.drama_router')
 
-# 尝试注册产品路由
-try:
-    from memos.api.routers.product_router import router as product_router
-    app.include_router(product_router)
-    logger.info("✅ Product router registered successfully")
-except Exception as e:
-    logger.warning(f"⚠️  Product router not available: {e}")
 
 # 尝试注册服务器路由
 try:

@@ -35,9 +35,8 @@ if [ ! -f ".env" ]; then
 fi
 
 echo "  - 更新并启动应用容器..."
-docker-compose up -d --build frontend
+docker compose up -d --build frontend
 
 echo "✅ 部署完成！"
 echo "🌐 前端访问地址: http://localhost"
 echo "📁 后端 API 地址: http://api.qiuqiuwriter.top:8000/docs (远程)"
-
