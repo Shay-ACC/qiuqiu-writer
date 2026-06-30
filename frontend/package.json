@@ -12,7 +12,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "node scripts/fix-darwin-arm64-bindings.cjs"
   },
   "dependencies": {
     "@antv/g6": "^5.0.50",

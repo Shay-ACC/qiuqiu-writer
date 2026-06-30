@@ -23,6 +23,14 @@ services:
       options:
         max-size: "100m"
         max-file: "3"
+    healthcheck:
+      # backend 通过 depends_on.condition: service_healthy 等待该检查通过，
+      # 缺失 healthcheck 会导致服务永远无法变为 healthy，backend 启动失败。
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-writerai}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     networks:
       - qiuqiuwriter_net
 
@@ -37,6 +45,15 @@ services:
       driver: "json-file"
       options:
         max-size: "50m"
+    healthcheck:
+      # 启用密码后需要 -a 传递密码，否则 PING 会被拒绝导致检查失败。
+      # 这里用与 command 一致的 ${REDIS_PASSWORD} 插值（构建期注入），
+      # 而非 $$ 运行期变量——redis 容器环境并未导出该变量。
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD} ping | grep PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
     networks:
       - qiuqiuwriter_net
 

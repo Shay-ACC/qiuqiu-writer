@@ -40,8 +40,10 @@ services:
     image: nginx:alpine
     container_name: qiuqiuwriter-frontend
     restart: unless-stopped
+    # nginx/frontend.conf 监听容器内 80 端口，故将宿主机 81 映射到容器 80。
+    # 与 start.sh 提示的 http://localhost:81 一致。
     ports:
-      - "81:81"
+      - "81:80"
     volumes:
       - ../frontend/dist:/usr/share/nginx/html:ro
       - ./nginx/frontend.conf:/etc/nginx/conf.d/default.conf:ro
